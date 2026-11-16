@@ -28,8 +28,20 @@ export default function App() {
   }, []);
 
   function go(next: Route) {
-    location.hash = toHash(next);
+    // markiert Einträge der App, damit der Zurück-Pfeil sie per history.back() verlassen darf
+    history.pushState({ app: true }, "", toHash(next));
     setRoute(next);
+  }
+
+  function back() {
+    if (history.state?.app) {
+      history.back(); // hashchange setzt die Route
+      return;
+    }
+    // Direktlink: kein eigener Eintrag davor, also ersetzen statt die App zu verlassen
+    const up = parent(route);
+    history.replaceState(null, "", toHash(up));
+    setRoute(up);
   }
 
   function closeInstall() {
@@ -50,7 +62,6 @@ export default function App() {
     );
   }
 
-  const back = () => go(parent(route));
   switch (route.screen) {
     case "side":
       return <SideScreen onPick={(side) => go({ screen: "maps", side })} />;

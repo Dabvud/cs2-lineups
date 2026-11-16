@@ -69,14 +69,38 @@ it("führt der Zurück-Pfeil Schritt für Schritt bis zur Startseite", () => {
   expect(screen.getByRole("button", { name: "CT" })).toBeInTheDocument();
 });
 
-it("bietet bei gleicher Landestelle eine Auswahl an", () => {
+it("geht mit dem Zurück-Pfeil im Verlauf zurück statt neue Einträge anzulegen", () => {
+  const back = vi.spyOn(history, "back").mockImplementation(() => {});
+  render(<App />);
+  click("T");
+  click("Mirage");
+  click("Jungle");
+  const length = history.length;
+  click("Zurück");
+  expect(back).toHaveBeenCalledOnce();
+  expect(history.length).toBe(length);
+});
+
+it("ersetzt bei einem Direktlink den Eintrag, statt die App zu verlassen", () => {
+  const back = vi.spyOn(history, "back");
+  history.replaceState(null, "", `/#/t/mirage/${spot("t", "Jungle").id}`);
+  render(<App />);
+  const length = history.length;
+  click("Zurück");
+  expect(back).not.toHaveBeenCalled();
+  expect(history.length).toBe(length);
+  expect(location.hash).toBe("#/t/mirage");
+  expect(screen.getByTestId("radar")).toBeInTheDocument();
+});
+
+it("bietet bei gleicher Landestelle eine Auswahl an", async () => {
   render(<App />);
   go("#/t/mirage");
   click("Window");
   click("Mid Window (aus T-Spawn) Smoke");
   expect(screen.getByRole("heading", { name: "Mid Window (aus T-Spawn)" })).toBeInTheDocument();
   click("Zurück");
-  click("Window");
+  fireEvent.click(await screen.findByRole("button", { name: "Window" }));
   click("Mid Window (von Top Mid) Smoke");
   expect(screen.getByRole("heading", { name: "Mid Window (von Top Mid)" })).toBeInTheDocument();
 });
