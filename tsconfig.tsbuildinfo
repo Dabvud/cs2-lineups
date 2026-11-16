@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/config.ts","./src/install.ts","./src/main.tsx","./src/vite-env.d.ts","./src/components/installinstructions.tsx","./src/screens/installscreen.tsx","./tests/app.install.test.tsx","./tests/setup.ts","./vite.config.ts"],"version":"5.9.3"}
