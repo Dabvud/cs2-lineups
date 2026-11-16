@@ -1,0 +1,22 @@
+name: Supabase wach halten
+
+# Kostenlose Supabase-Projekte pausieren nach etwa einer Woche ohne Zugriff.
+on:
+  schedule:
+    - cron: "0 6 */3 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Spots einmal lesen
+        env:
+          # öffentliche Werte (stehen auch in src/config.ts)
+          URL: https://ryvcxbmcsiuvgdehivao.supabase.co
+        run: |
+          ANON=$(curl -fsS "https://raw.githubusercontent.com/${{ github.repository }}/main/src/config.ts" | grep -o 'eyJ[^"]*')
+          curl -fsS "$URL/rest/v1/spots?select=id&limit=1" -H "apikey: $ANON" -H "Authorization: Bearer $ANON"

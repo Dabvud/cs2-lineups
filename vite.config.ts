@@ -17,6 +17,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      // Registrierung in main.tsx, damit neue Versionen sofort geladen werden
+      injectRegister: false,
       manifest: {
         name: APP_NAME,
         short_name: APP_NAME,
@@ -35,6 +37,14 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,jpg}"],
+        runtimeCaching: [
+          {
+            // Bildpfade enthalten einen Zufallsteil, ändern sich also bei jedem Austausch
+            urlPattern: ({ url }) => url.pathname.startsWith("/storage/v1/object/public/lineups/"),
+            handler: "CacheFirst",
+            options: { cacheName: "lineup-bilder", expiration: { maxEntries: 200 }, cacheableResponse: { statuses: [0, 200] } },
+          },
+        ],
       },
     }),
   ],
