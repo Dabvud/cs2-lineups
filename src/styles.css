@@ -73,7 +73,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: var(--panel);
   border-radius: 12px;
 }
-.radar img { width: 100%; height: 100%; display: block; border-radius: 12px; }
+.radar { overflow: hidden; }
+/* Radarbilder haben viel leeren Rand – Bild und Punkte gemeinsam vergrößern, damit die Punkte passen */
+.radar-layer { position: absolute; inset: 0; transform: scale(1.12); transform-origin: 54% 50%; }
+.radar img { width: 100%; height: 100%; display: block; }
 .point {
   position: absolute; transform: translate(-50%, -50%);
   min-width: 44px; min-height: 44px; padding: 0; border: 0; background: none;
@@ -84,7 +87,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .point.molly .dot, .legend .dot.molly { background: var(--molly); }
 .tag {
   margin-top: 2px; padding: 1px 6px; border-radius: 6px;
-  background: rgb(0 0 0 / 0.7); font-size: 0.72rem; white-space: nowrap;
+  background: rgb(0 0 0 / 0.7); font-size: 0.68rem; white-space: nowrap;
 }
 .legend { margin: 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
 .legend .dot { width: 12px; height: 12px; vertical-align: -1px; margin-left: 10px; }

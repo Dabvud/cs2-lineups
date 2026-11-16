@@ -1,12 +1,14 @@
+import mirageRadar from "../assets/maps/mirage.png";
 import type { MapInfo, Spot } from "./types";
 
 export const MAPS: MapInfo[] = [
-  { id: "mirage", name: "Mirage", active: true },
+  { id: "mirage", name: "Mirage", radar: mirageRadar, active: true },
   { id: "inferno", name: "Inferno", active: false },
   { id: "dust2", name: "Dust2", active: false },
 ];
 
-// Quellen: siehe docs/superpowers/specs/2026-11-16-cs2-lineups-design.md
+// Landestellen in % des Radars, angelehnt an die Callouts von csdb.gg (siehe src/assets/maps/QUELLE.md).
+// Quellen der Videos: siehe docs/superpowers/specs/2026-11-16-cs2-lineups-design.md
 const TIGERR = "Q4Dwg9Z0wZ0";
 const UTILITY10 = "SGeV9W39X68";
 const NADES = "xPCYPKFG44E";
@@ -14,31 +16,31 @@ const NADES = "xPCYPKFG44E";
 type Row = [id: string, side: Spot["side"], type: Spot["type"], name: string, label: string, area: Spot["area"], x: number, y: number, videoId: string, start: number, end: number];
 
 const ROWS: Row[] = [
-  ["t-window-spawn", "t", "smoke", "Mid Window (aus T-Spawn)", "Window", "Mid", 40, 45, TIGERR, 15, 81],
-  ["t-connector", "t", "smoke", "Top Connector (aus T-Spawn)", "Connector", "Mid", 45, 40, TIGERR, 81, 115],
-  ["t-catwalk-spawn", "t", "smoke", "Catwalk (aus T-Spawn)", "Catwalk", "Mid", 35, 40, TIGERR, 115, 141],
-  ["t-mid-cross", "t", "smoke", "Mid Cross (aus T-Spawn)", "Cross", "Mid", 50, 45, TIGERR, 141, 157],
-  ["t-window-top", "t", "smoke", "Mid Window (von Top Mid)", "Window", "Mid", 40, 45, TIGERR, 157, 218],
-  ["t-catwalk-b", "t", "smoke", "Catwalk (für B)", "Catwalk", "B", 30, 35, TIGERR, 218, 256],
-  ["t-market-window", "t", "smoke", "Market Window", "Market Window", "B", 20, 30, TIGERR, 256, 290],
-  ["t-market-door", "t", "smoke", "Market Door", "Market Door", "B", 25, 25, TIGERR, 290, 335],
-  ["t-ct", "t", "smoke", "Ticket/CT", "CT", "A", 60, 70, TIGERR, 335, 371],
-  ["t-jungle", "t", "smoke", "Jungle", "Jungle", "A", 55, 60, TIGERR, 371, 403],
-  ["t-stairs", "t", "smoke", "Stairs", "Stairs", "A", 60, 60, TIGERR, 403, 490],
-  ["t-firebox-molly", "t", "molly", "Firebox", "Firebox", "A", 70, 75, UTILITY10, 122, 139],
-  ["t-window-molly", "t", "molly", "Window (von Top Mid)", "Window", "Mid", 42, 47, UTILITY10, 343, 372],
-  ["t-balcony-molly", "t", "molly", "Balcony", "Balcony", "B", 15, 20, UTILITY10, 452, 479],
-  ["t-bench-molly", "t", "molly", "Bench", "Bench", "B", 20, 20, UTILITY10, 479, 514],
-  ["ct-window", "ct", "smoke", "Window", "Window", "Mid", 45, 50, NADES, 796, 821],
-  ["ct-topmid-molly", "ct", "molly", "Top Mid", "Top Mid", "Mid", 55, 50, NADES, 821, 838],
-  ["ct-bottom-con", "ct", "smoke", "Bottom Connector", "Bottom Con", "Mid", 50, 55, NADES, 882, 922],
-  ["ct-ramp-molly", "ct", "molly", "Ramp", "Ramp", "A", 75, 65, NADES, 922, 931],
-  ["ct-ramp", "ct", "smoke", "Ramp", "Ramp", "A", 77, 63, NADES, 931, 939],
-  ["ct-palace", "ct", "smoke", "Palace (von Market)", "Palace", "A", 80, 80, NADES, 972, 988],
-  ["ct-a-def", "ct", "smoke", "A defensiv", "A def.", "A", 70, 70, NADES, 988, 1005],
-  ["ct-a-plant-molly", "ct", "molly", "A gegen den Plant", "Plant", "A", 72, 75, NADES, 1005, 1030],
-  ["ct-b-aps", "ct", "smoke", "B Aps", "Aps", "B", 15, 30, NADES, 1041, 1048],
-  ["ct-b-def", "ct", "smoke", "B defensiv", "B def.", "B", 20, 25, NADES, 1074, 1123],
+  ["t-window-spawn", "t", "smoke", "Mid Window (aus T-Spawn)", "Window", "Mid", 41, 50, TIGERR, 15, 81],
+  ["t-connector", "t", "smoke", "Top Connector (aus T-Spawn)", "Connector", "Mid", 49, 51, TIGERR, 81, 115],
+  ["t-catwalk-spawn", "t", "smoke", "Catwalk (aus T-Spawn)", "Catwalk", "Mid", 47, 40, TIGERR, 115, 141], // geschätzt
+  ["t-mid-cross", "t", "smoke", "Mid Cross (aus T-Spawn)", "Cross", "Mid", 55, 46, TIGERR, 141, 157], // geschätzt
+  ["t-window-top", "t", "smoke", "Mid Window (von Top Mid)", "Window", "Mid", 41, 50, TIGERR, 157, 218],
+  ["t-catwalk-b", "t", "smoke", "Catwalk (für B)", "Catwalk", "B", 36, 38, TIGERR, 218, 256], // geschätzt
+  ["t-market-window", "t", "smoke", "Market Window", "Market Window", "B", 21, 39, TIGERR, 256, 290], // geschätzt
+  ["t-market-door", "t", "smoke", "Market Door", "Market Door", "B", 29, 39, TIGERR, 290, 335], // geschätzt
+  ["t-ct", "t", "smoke", "Ticket/CT", "CT", "A", 46, 74, TIGERR, 335, 371], // geschätzt
+  ["t-jungle", "t", "smoke", "Jungle", "Jungle", "A", 44, 63, TIGERR, 371, 403],
+  ["t-stairs", "t", "smoke", "Stairs", "Stairs", "A", 53, 64, TIGERR, 403, 490],
+  ["t-firebox-molly", "t", "molly", "Firebox", "Firebox", "A", 57, 70, UTILITY10, 122, 139], // geschätzt
+  ["t-window-molly", "t", "molly", "Window (von Top Mid)", "Window", "Mid", 38, 47, UTILITY10, 343, 372],
+  ["t-balcony-molly", "t", "molly", "Balcony", "Balcony", "B", 33, 24, UTILITY10, 452, 479], // geschätzt
+  ["t-bench-molly", "t", "molly", "Bench", "Bench", "B", 14, 27, UTILITY10, 479, 514], // geschätzt
+  ["ct-window", "ct", "smoke", "Window", "Window", "Mid", 63, 46, NADES, 796, 821], // geschätzt
+  ["ct-topmid-molly", "ct", "molly", "Top Mid", "Top Mid", "Mid", 69, 44, NADES, 821, 838],
+  ["ct-bottom-con", "ct", "smoke", "Bottom Connector", "Bottom Con", "Mid", 48, 58, NADES, 882, 922],
+  ["ct-ramp-molly", "ct", "molly", "Ramp", "Ramp", "A", 68, 65, NADES, 922, 931],
+  ["ct-ramp", "ct", "smoke", "Ramp", "Ramp", "A", 68, 65, NADES, 931, 939],
+  ["ct-palace", "ct", "smoke", "Palace (von Market)", "Palace", "A", 66, 74, NADES, 972, 988], // geschätzt
+  ["ct-a-def", "ct", "smoke", "A defensiv", "A def.", "A", 61, 69, NADES, 988, 1005], // geschätzt
+  ["ct-a-plant-molly", "ct", "molly", "A gegen den Plant", "Plant", "A", 54, 77, NADES, 1005, 1030], // geschätzt
+  ["ct-b-aps", "ct", "smoke", "B Aps", "Aps", "B", 31, 22, NADES, 1041, 1048], // geschätzt
+  ["ct-b-def", "ct", "smoke", "B defensiv", "B def.", "B", 34, 35, NADES, 1074, 1123], // geschätzt
 ];
 
 export const SPOTS: Spot[] = ROWS.map(([id, side, type, name, label, area, x, y, videoId, start, end]) => ({

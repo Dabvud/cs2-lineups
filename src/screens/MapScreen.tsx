@@ -25,6 +25,7 @@ export default function MapScreen({ side, map, spots, onPick, onBack }: Props) {
     <main className={`screen side-${side}`}>
       <TopBar title={`${map.name} · ${side.toUpperCase()}`} onBack={onBack} />
       <div className="radar" data-testid="radar">
+        <div className="radar-layer">
         {map.radar && <img src={map.radar} alt="" />}
         {groups.map((g) => {
           const label = [...new Set(g.map(pointLabel))].join(" / ");
@@ -39,10 +40,11 @@ export default function MapScreen({ side, map, spots, onPick, onBack }: Props) {
               onClick={() => (g.length === 1 ? onPick(g[0].id) : setChoice(g))}
             >
               <span className="dot" />
-              <span className="tag">{label}</span>
+              <span className="tag" aria-hidden="true">{[...new Set(g.map((s) => s.label))].join(" / ")}</span>
             </button>
           );
         })}
+        </div>
       </div>
       <p className="legend">
         <span className="dot smoke" /> Smoke <span className="dot molly" /> Molly
