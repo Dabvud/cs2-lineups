@@ -8,6 +8,9 @@ export type SpotInput = {
   x: number;
   y: number;
   text?: string | null;
+  video_id?: string | null;
+  start_s?: number | null;
+  end_s?: number | null;
 };
 
 export type Action = "check" | "create" | "update" | "delete";
@@ -60,13 +63,37 @@ export function validateInput(
   if (data.text != null && typeof data.text !== "string") errors.push("Wurfanleitung muss Text sein.");
   if ((action === "update" && !id) || (data.id !== undefined && typeof data.id !== "string")) {
     errors.push("Gültige Spot-ID fehlt.");
+  } else if (action === "create" && data.id !== undefined && !/^[a-z0-9-]{3,60}$/.test(data.id as string)) {
+    errors.push("Spot-ID muss aus 3 bis 60 Kleinbuchstaben, Ziffern oder Bindestrichen bestehen.");
+  }
+
+  // Nur create übernimmt Migrationsvideos; Editor-Updates erhalten vorhandene Werte.
+  const video: Pick<SpotInput, "video_id" | "start_s" | "end_s"> = {};
+  if (action === "create") {
+    if (data.video_id !== undefined) {
+      if (data.video_id !== null && (typeof data.video_id !== "string" || !/^[A-Za-z0-9_-]{11}$/.test(data.video_id))) {
+        errors.push("Video-ID ist ungültig.");
+      } else {
+        video.video_id = data.video_id as string | null;
+      }
+    }
+    for (const key of ["start_s", "end_s"] as const) {
+      const seconds = data[key];
+      if (seconds === undefined) continue;
+      if (seconds !== null && (typeof seconds !== "number" || !Number.isInteger(seconds) || seconds < 0 || seconds > 2_147_483_647)) {
+        errors.push(`${key} muss eine nicht negative ganze Sekundenzahl sein.`);
+      } else {
+        video[key] = seconds as number | null;
+      }
+    }
   }
 
   for (const kind of ["stand", "aim"] as const) {
     const image = images[kind];
     const title = kind === "stand" ? "Bild ‚Hier hinstellen‘" : "Bild ‚Hierhin zielen‘";
     if (!image) {
-      if (action === "create") errors.push(`${title} fehlt.`);
+      // Der HTTP-Handler prüft den PIN, bevor er diese Ausnahme zulässt.
+      if (action === "create" && data.allowMissingImages !== true) errors.push(`${title} fehlt.`);
       continue;
     }
     if (!Number.isFinite(image.size) || image.size <= 0 || image.size > MAX_IMAGE_BYTES) {
@@ -88,6 +115,7 @@ export function validateInput(
       x: data.x as number,
       y: data.y as number,
       text,
+      ...video,
     },
   };
 }

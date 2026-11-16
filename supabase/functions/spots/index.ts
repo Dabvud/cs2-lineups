@@ -78,7 +78,7 @@ Deno.serve(async (request: Request): Promise<Response> => {
     if (!result.ok) return invalid(...result.errors);
     const { id: inputId, ...value } = result.value;
     id = action === "create"
-      ? newSpotId(value.side, value.name, crypto.randomUUID().slice(0, 6))
+      ? inputId ?? newSpotId(value.side, value.name, crypto.randomUUID().slice(0, 6))
       : inputId!;
     fields = { ...value, updated_at: new Date().toISOString() };
   }
@@ -97,7 +97,12 @@ Deno.serve(async (request: Request): Promise<Response> => {
     const bucket = client.storage.from("lineups");
     try {
       let old: { stand_path: string | null; aim_path: string | null } | null = null;
-      if (action !== "create") {
+      // Auch vor Create prüfen: Wiederholte Migrationen laden keine Bilder erneut hoch.
+      if (action === "create") {
+        const { data, error } = await client.from("spots").select("id").eq("id", id).maybeSingle();
+        if (error) throw error;
+        if (data) return reply(409, { error: "exists" });
+      } else {
         const { data, error } = await client.from("spots").select("*").eq("id", id).maybeSingle();
         if (error) throw error;
         if (!data) return reply(404, { error: "not_found" });
@@ -145,6 +150,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
       if (!saved && uploaded.length) {
         const { error: cleanupError } = await bucket.remove(uploaded);
         if (cleanupError) console.error("spots: Neue Bilder konnten nicht aufgeräumt werden.");
+      }
+      // Ein paralleler Create kann die ID zwischen Prüfung und Insert belegen.
+      if (action === "create" && error && typeof error === "object" && "code" in error && error.code === "23505") {
+        return reply(409, { error: "exists" });
       }
       throw error;
     }

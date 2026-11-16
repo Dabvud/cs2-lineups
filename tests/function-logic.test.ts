@@ -31,6 +31,74 @@ describe("pinMatches", () => {
 });
 
 describe("validateInput", () => {
+  it.each(["t-jungle", "abc", "a".repeat(60)])("behält eine gültige Create-ID %s", (id) => {
+    expect(validateInput({ ...spot, id }, "create", images)).toMatchObject({
+      ok: true, value: { id },
+    });
+  });
+
+  it.each(["A B", "ab", "a".repeat(61), "", " t-jungle", "t/jungle", 42, null])(
+    "lehnt eine ungültige Create-ID ab (Fall %#)", (id) => {
+      expect(validateInput({ ...spot, id }, "create", images).ok).toBe(false);
+    },
+  );
+
+  it.each([{}, { aim: jpeg }, { stand: jpeg }])("erlaubt fehlende Migrationsbilder mit explizitem Flag (Fall %#)", (files) => {
+    const result = validateInput({ ...spot, allowMissingImages: true }, "create", files);
+    expect(result).toMatchObject({ ok: true });
+    if (result.ok) expect(result.value).not.toHaveProperty("allowMissingImages");
+  });
+
+  it.each([undefined, false, "true", 1])("verlangt ohne boolesches true beide Bilder (Fall %#)", (allowMissingImages) => {
+    expect(validateInput({ ...spot, allowMissingImages }, "create", {}).ok).toBe(false);
+  });
+
+  it("prüft auch mit allowMissingImages die vorhandenen Bilder", () => {
+    expect(validateInput({ ...spot, allowMissingImages: true }, "create", {
+      aim: { size: 1_000_001, type: "image/gif" },
+    }).ok).toBe(false);
+  });
+
+  it("übernimmt ausdrücklich mitgegebene Videofelder bei create", () => {
+    const video = { video_id: "Q4Dwg9Z0wZ0", start_s: 0, end_s: 81 };
+    expect(validateInput({ ...spot, ...video }, "create", images)).toMatchObject({
+      ok: true, value: video,
+    });
+  });
+
+  it("fügt ohne Videofelder keine hinzu", () => {
+    const result = validateInput(spot, "create", images);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      for (const key of ["video_id", "start_s", "end_s"]) expect(result.value).not.toHaveProperty(key);
+    }
+  });
+
+  it("akzeptiert explizit leere optionale Videofelder", () => {
+    const video = { video_id: null, start_s: null, end_s: null };
+    expect(validateInput({ ...spot, ...video }, "create", images)).toMatchObject({
+      ok: true, value: video,
+    });
+  });
+
+  it.each([
+    { video_id: 42 }, { video_id: "kein gültiges Video" },
+    { start_s: -1 }, { start_s: "15" }, { start_s: 1.5 },
+    { end_s: Infinity }, { end_s: 2_147_483_648 },
+  ])("lehnt ungültige Videofelder ab (Fall %#)", (video) => {
+    expect(validateInput({ ...spot, ...video }, "create", images).ok).toBe(false);
+  });
+
+  it("lässt die bestehenden Videofelder bei Editor-Updates unverändert", () => {
+    const result = validateInput({
+      ...spot, id: "t-jungle", video_id: "Q4Dwg9Z0wZ0", start_s: 0, end_s: 81,
+    }, "update", {});
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      for (const key of ["video_id", "start_s", "end_s"]) expect(result.value).not.toHaveProperty(key);
+    }
+  });
+
   it("akzeptiert create, trimmt den Namen und setzt einen leeren Kurznamen auf null", () => {
     expect(validateInput(spot, "create", images)).toEqual({
       ok: true,
