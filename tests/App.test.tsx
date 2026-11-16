@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import App from "../src/App";
 import { SPOTS } from "../src/data/lineups";
-import { embedUrl, watchUrl } from "../src/embed";
+import { watchUrl } from "../src/embed";
 
 const spot = (side: string, name: string) => SPOTS.find((s) => s.side === side && s.name === name)!;
 const click = (name: string) => fireEvent.click(screen.getByRole("button", { name }));
@@ -47,14 +47,14 @@ it("zeigt auf dem Radar einen Punkt je Landestelle, in Prozent positioniert", ()
   }
 });
 
-it("öffnet per Punkt das Lineup mit Video ab der richtigen Stelle", () => {
-  render(<App />);
+it("öffnet per Punkt das Lineup mit Videolink ab der richtigen Stelle", () => {
+  const { container } = render(<App />);
   go("#/t/mirage");
   click("Jungle");
   const jungle = spot("t", "Jungle");
   expect(screen.getByRole("heading", { name: "Jungle" })).toBeInTheDocument();
-  expect(screen.getByTitle("Jungle")).toHaveAttribute("src", embedUrl(jungle));
-  expect(screen.getByRole("link", { name: "Auf YouTube öffnen" })).toHaveAttribute("href", watchUrl(jungle));
+  expect(container.querySelector("iframe")).toBeNull();
+  expect(screen.getByRole("link", { name: "Video ansehen (YouTube)" })).toHaveAttribute("href", watchUrl(jungle));
 });
 
 it("führt der Zurück-Pfeil Schritt für Schritt bis zur Startseite", () => {
@@ -118,11 +118,30 @@ it("zeigt bei veraltetem Spot die Karte", () => {
   expect(screen.getByTestId("radar")).toBeInTheDocument();
 });
 
-it("weist ohne Internet darauf hin", () => {
-  vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
-  history.replaceState(null, "", `/#/t/mirage/${spot("t", "Jungle").id}`);
+it("zeigt Standbilder mit Beschriftung", () => {
+  const jungle = spot("t", "Jungle");
+  jungle.stand = "/stand.jpg";
+  jungle.aim = "/aim.jpg";
+  try {
+    history.replaceState(null, "", `/#/t/mirage/${jungle.id}`);
+    render(<App />);
+    expect(screen.getByAltText("Hier hinstellen: Jungle").getAttribute("src")).toMatch(/\/stand\.jpg$/);
+    expect(screen.getByAltText("Hierhin zielen: Jungle").getAttribute("src")).toMatch(/\/aim\.jpg$/);
+    expect(screen.getByText("Hier hinstellen")).toBeVisible();
+    expect(screen.getByText("Hierhin zielen")).toBeVisible();
+    expect(screen.queryByText(/Bilder folgen/)).toBeNull();
+  } finally {
+    delete jungle.stand;
+    delete jungle.aim;
+  }
+});
+
+it("ohne Bilder Hinweis", () => {
+  const jungle = spot("t", "Jungle");
+  history.replaceState(null, "", `/#/t/mirage/${jungle.id}`);
   render(<App />);
-  expect(screen.getByText("Für Videos brauchst du Internet")).toBeInTheDocument();
+  expect(screen.getByText("Bilder folgen – bis dahin hilft das Video.")).toBeVisible();
+  expect(screen.queryByRole("img")).toBeNull();
 });
 
 it("zeigt Text nur, wenn vorhanden", () => {

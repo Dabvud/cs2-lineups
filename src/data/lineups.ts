@@ -1,6 +1,8 @@
 import mirageRadar from "../assets/maps/mirage.png";
 import type { MapInfo, Spot } from "./types";
 
+const IMAGES = import.meta.glob<string>("../assets/lineups/*.jpg", { eager: true, import: "default" });
+
 export const MAPS: MapInfo[] = [
   { id: "mirage", name: "Mirage", radar: mirageRadar, active: true },
   { id: "inferno", name: "Inferno", active: false },
@@ -43,9 +45,15 @@ const ROWS: Row[] = [
   ["ct-b-def", "ct", "smoke", "B defensiv", "B def.", "B", 34, 35, NADES, 1074, 1123], // geschätzt
 ];
 
-export const SPOTS: Spot[] = ROWS.map(([id, side, type, name, label, area, x, y, videoId, start, end]) => ({
-  id, map: "mirage", side, type, name, label, area, x, y, videoId, start, end,
-}));
+export const SPOTS: Spot[] = ROWS.map(([id, side, type, name, label, area, x, y, videoId, start, end]) => {
+  const stand = IMAGES[`../assets/lineups/${id}-stand.jpg`];
+  const aim = IMAGES[`../assets/lineups/${id}-aim.jpg`];
+  return {
+    id, map: "mirage", side, type, name, label, area, x, y, videoId, start, end,
+    ...(stand !== undefined ? { stand } : {}),
+    ...(aim !== undefined ? { aim } : {}),
+  };
+});
 
 /** Prüft die Daten; leere Liste = gültig. */
 export function validate(maps: MapInfo[], spots: Spot[]): string[] {

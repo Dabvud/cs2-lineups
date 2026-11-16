@@ -17,5 +17,8 @@ export type Spot = {
   /** Sekunden im Video */
   start: number;
   end: number;
+  /** Standbild-URLs, aus src/assets/lineups/<id>-stand.jpg / <id>-aim.jpg */
+  stand?: string;
+  aim?: string;
   text?: string;
 };
