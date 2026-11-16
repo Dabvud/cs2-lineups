@@ -17,7 +17,7 @@ it.each(["Fertig"])("öffnet die Hilfe und entfernt beim %s nur den Installation
   const first = render(<App />);
   expect(screen.getByRole("heading", { name: "Aufs iPad holen" })).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: button }));
-  expect(screen.getByRole("button", { name: "T" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Mirage/ })).toBeInTheDocument();
   expect(location.search).toBe("?keep=1");
   expect(location.hash).toBe("#hilfe");
   first.unmount();
@@ -29,7 +29,7 @@ it.each(["media", "navigator"])("ignoriert den Parameter in der installierten Ap
   if (kind === "media") vi.stubGlobal("matchMedia", () => ({ matches: true }));
   else vi.stubGlobal("navigator", { standalone: true, userAgent: navigator.userAgent });
   render(<App />);
-  expect(screen.getByRole("button", { name: "T" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Mirage/ })).toBeInTheDocument();
 });
 
 it("bietet auch ein später eintreffendes Installationsereignis an", async () => {

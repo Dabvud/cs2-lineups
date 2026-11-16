@@ -1,12 +1,11 @@
-import TopBar from "../components/TopBar";
-import type { MapInfo, Side } from "../data/types";
+import type { MapInfo } from "../data/types";
 
-type Props = { side: Side; maps: MapInfo[]; onPick: (map: string) => void; onBack: () => void };
+type Props = { maps: MapInfo[]; onPick: (map: string) => void };
 
-export default function MapPoolScreen({ side, maps, onPick, onBack }: Props) {
+export default function MapPoolScreen({ maps, onPick }: Props) {
   return (
-    <main className={`screen side-${side}`}>
-      <TopBar title={`Map · ${side.toUpperCase()}`} onBack={onBack} />
+    <main className="screen">
+      <h1 className="eyebrow">Map wählen</h1>
       <div className="maps">
         {maps.map((m) => (
           <button

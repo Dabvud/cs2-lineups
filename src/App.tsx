@@ -63,10 +63,16 @@ export default function App() {
   }
 
   switch (route.screen) {
-    case "side":
-      return <SideScreen onPick={(side) => go({ screen: "maps", side })} />;
     case "maps":
-      return <MapPoolScreen side={route.side} maps={MAPS} onBack={back} onPick={(map) => go({ ...route, screen: "map", map })} />;
+      return <MapPoolScreen maps={MAPS} onPick={(map) => go({ screen: "side", map })} />;
+    case "side":
+      return (
+        <SideScreen
+          map={MAPS.find((m) => m.id === route.map)!}
+          onBack={back}
+          onPick={(side) => go({ ...route, screen: "map", side })}
+        />
+      );
     case "map":
       return (
         <MapScreen
