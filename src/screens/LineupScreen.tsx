@@ -2,11 +2,12 @@ import TopBar from "../components/TopBar";
 import type { Spot } from "../data/types";
 import { watchUrl } from "../embed";
 
-export default function LineupScreen({ spot, onBack }: { spot: Spot; onBack: () => void }) {
+export default function LineupScreen({ spot, onBack, onEdit }: { spot: Spot; onBack: () => void; onEdit?: () => void }) {
   return (
     <main className={`screen side-${spot.side}`}>
       <TopBar title={spot.type === "molly" ? "Molly" : "Smoke"} onBack={onBack} />
       <h2 className="lineup-name">{spot.name}</h2>
+      {onEdit && <button type="button" className="editor-button edit-spot" onClick={onEdit}>Bearbeiten</button>}
       {spot.stand || spot.aim ? (
         <div className="shots">
           {spot.stand && (

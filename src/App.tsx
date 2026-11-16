@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import PinDialog from "./components/PinDialog";
 import { MAPS } from "./data/maps";
+import { clearPin, getPin, setPin } from "./data/pin";
 import { useSpots } from "./data/useSpots";
 import { canPromptInstall, detectPlatform, isStandalone, promptInstall, wantsInstall } from "./install";
 import { parent, parseRoute, toHash, type Route } from "./route";
 import InstallScreen from "./screens/InstallScreen";
+import EditScreen from "./screens/EditScreen";
 import LineupScreen from "./screens/LineupScreen";
 import MapPoolScreen from "./screens/MapPoolScreen";
 import MapScreen from "./screens/MapScreen";
@@ -14,12 +17,17 @@ export default function App() {
   const [installing, setInstalling] = useState(() => wantsInstall(location.search) && platform !== "installed");
   const [canPrompt, setCanPrompt] = useState(canPromptInstall);
   const [hash, setHash] = useState(() => location.hash);
-  const { spots, status, reload } = useSpots();
+  const { spots, status, reload, upsert, remove } = useSpots();
   const route = parseRoute(hash, MAPS, spots);
+  const [sessionPin, setSessionPin] = useState<string | null>(null);
+  const [pinRejected, setPinRejected] = useState(false);
+  const [pendingEditor, setPendingEditor] = useState<Route | null>(null);
+  const pin = pinRejected ? null : sessionPin ?? getPin();
+  const needsPin = pendingEditor !== null || ((route.screen === "new" || route.screen === "edit") && !pin);
 
   useEffect(() => {
     const updatePrompt = () => setCanPrompt(canPromptInstall());
-    const updateRoute = () => setHash(location.hash);
+    const updateRoute = () => { setHash(location.hash); setPendingEditor(null); };
     window.addEventListener("beforeinstallprompt", updatePrompt);
     window.addEventListener("hashchange", updateRoute);
     return () => {
@@ -28,10 +36,22 @@ export default function App() {
     };
   }, []);
 
-  function go(next: Route) {
+  function go(next: Route, replace = false) {
     // markiert Einträge der App, damit der Zurück-Pfeil sie per history.back() verlassen darf
-    history.pushState({ app: true }, "", toHash(next));
+    if (replace) history.replaceState(history.state, "", toHash(next));
+    else history.pushState({ app: true }, "", toHash(next));
     setHash(toHash(next));
+  }
+
+  function openEditor(next: Route) {
+    if (pin) go(next);
+    else setPendingEditor(next);
+  }
+
+  function requirePin() {
+    clearPin();
+    setSessionPin(null);
+    setPinRejected(true);
   }
 
   function back() {
@@ -76,7 +96,8 @@ export default function App() {
     );
   }
 
-  switch (route.screen) {
+  function renderScreen() {
+    switch (route.screen) {
     case "maps":
       return <MapPoolScreen maps={MAPS} onPick={(map) => go({ screen: "side", map })} />;
     case "side":
@@ -95,9 +116,45 @@ export default function App() {
           spots={spots}
           onBack={back}
           onPick={(spot) => go({ ...route, screen: "spot", spot })}
+          onNew={() => openEditor({ ...route, screen: "new" })}
         />
       );
     case "spot":
-      return <LineupScreen key={route.spot} spot={spots.find((s) => s.id === route.spot)!} onBack={back} />;
+      return <LineupScreen key={route.spot} spot={spots.find((s) => s.id === route.spot)!} onBack={back} onEdit={pin ? () => openEditor({ ...route, screen: "edit" }) : undefined} />;
+    case "new":
+    case "edit":
+      return <EditScreen
+        key={route.screen === "edit" ? route.spot : `new-${route.map}-${route.side}`}
+        map={MAPS.find((m) => m.id === route.map)!}
+        side={route.side}
+        spots={spots}
+        spot={route.screen === "edit" ? spots.find((s) => s.id === route.spot) : undefined}
+        pin={pin}
+        onBack={back}
+        onPinRequired={requirePin}
+        onSave={(spot) => {
+          upsert(spot);
+          go({ screen: "spot", map: spot.map, side: spot.side, spot: spot.id }, true);
+        }}
+        onDelete={(id) => {
+          remove(id);
+          go({ screen: "map", map: route.map, side: route.side }, true);
+        }}
+      />;
+    }
   }
+
+  return <>
+    {renderScreen()}
+    {needsPin && <PinDialog onSuccess={(value) => {
+      setPin(value);
+      setSessionPin(value);
+      setPinRejected(false);
+      if (pendingEditor) go(pendingEditor);
+      setPendingEditor(null);
+    }} onCancel={() => {
+      setPendingEditor(null);
+      if (route.screen === "new" || route.screen === "edit") go(parent(route), true);
+    }} />}
+  </>;
 }

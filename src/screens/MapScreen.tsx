@@ -2,7 +2,7 @@ import { useState } from "react";
 import TopBar from "../components/TopBar";
 import type { MapInfo, Side, Spot } from "../data/types";
 
-type Props = { side: Side; map: MapInfo; spots: Spot[]; onPick: (spot: string) => void; onBack: () => void };
+type Props = { side: Side; map: MapInfo; spots: Spot[]; onPick: (spot: string) => void; onBack: () => void; onNew: () => void };
 
 export function displayLabel(s: Spot): string {
   const label = s.label?.trim() || s.name;
@@ -22,7 +22,7 @@ function groupByLanding(spots: Spot[]): Spot[][] {
   return [...groups.values()];
 }
 
-export default function MapScreen({ side, map, spots, onPick, onBack }: Props) {
+export default function MapScreen({ side, map, spots, onPick, onBack, onNew }: Props) {
   const [choice, setChoice] = useState<Spot[] | null>(null);
   const groups = groupByLanding(spots.filter((s) => s.map === map.id && s.side === side));
 
@@ -54,6 +54,7 @@ export default function MapScreen({ side, map, spots, onPick, onBack }: Props) {
       <p className="legend">
         <span className="dot smoke" /> Smoke <span className="dot molly" /> Molly
       </p>
+      <button type="button" className="new-spot" aria-label="Neuer Spot" onClick={onNew}>+</button>
       {choice && (
         <div className="chooser" role="dialog" aria-label="Lineup wählen" onClick={() => setChoice(null)}>
           <div className="chooser-box">

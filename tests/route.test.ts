@@ -7,7 +7,7 @@ const ctSpot = SPOTS.find((s) => s.side === "ct")!;
 const parse = (hash: string) => parseRoute(hash, MAPS, SPOTS);
 
 describe("parseRoute/toHash", () => {
-  it.each(["#/", "#/mirage", "#/mirage/ct", `#/mirage/ct/${ctSpot.id}`])("Roundtrip %s", (hash) => {
+  it.each(["#/", "#/mirage", "#/mirage/ct", `#/mirage/ct/${ctSpot.id}`, "#/mirage/t/neu", "#/mirage/t/t-jungle/bearbeiten"])("Roundtrip %s", (hash) => {
     expect(toHash(parse(hash))).toBe(hash);
   });
 
@@ -23,7 +23,7 @@ describe("parseRoute/toHash", () => {
     expect(parse(hash)).toEqual({ screen: "side", map: "mirage" });
   });
 
-  it.each(["#/mirage/t", "#/mirage/t/gibtsnicht", `#/mirage/t/${ctSpot.id}`])("%s (fehlender/veralteter Spot oder falsche Seite) führt zur Karte", (hash) => {
+  it.each(["#/mirage/t", "#/mirage/t/gibtsnicht", `#/mirage/t/${ctSpot.id}`, "#/mirage/t/gibtsnicht/bearbeiten", `#/mirage/t/${ctSpot.id}/bearbeiten`])("%s (fehlender/veralteter Spot oder falsche Seite) führt zur Karte", (hash) => {
     expect(parse(hash)).toEqual({ screen: "map", map: "mirage", side: "t" });
   });
 
@@ -34,6 +34,10 @@ describe("parseRoute/toHash", () => {
 });
 
 describe("parent", () => {
+  it("führt vom Anlegen zur Karte und vom Bearbeiten zum Spot", () => {
+    expect(parent({ screen: "new", map: "mirage", side: "t" })).toEqual({ screen: "map", map: "mirage", side: "t" });
+    expect(parent({ screen: "edit", map: "mirage", side: "t", spot: "t-jungle" })).toEqual({ screen: "spot", map: "mirage", side: "t", spot: "t-jungle" });
+  });
   it("geht Schritt für Schritt zurück bis zur Startseite", () => {
     const spot: Route = { screen: "spot", side: "ct", map: "mirage", spot: ctSpot.id };
     expect(parent(spot)).toEqual({ screen: "map", side: "ct", map: "mirage" });
