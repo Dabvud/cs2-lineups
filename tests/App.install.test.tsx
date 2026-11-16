@@ -1,10 +1,13 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import App from "../src/App";
+import { seedCache, stubFetch } from "./fixtures";
 import { captureInstallPrompt } from "../src/install";
 
 beforeEach(() => {
   localStorage.clear();
+  seedCache();
+  stubFetch();
   history.replaceState(null, "", "/?installieren&keep=1#hilfe");
 });
 afterEach(() => {

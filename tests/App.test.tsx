@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import App from "../src/App";
-import { SPOTS } from "../src/data/lineups";
+import { FIXTURE as SPOTS, seedCache, stubFetch, stubFetchFail } from "./fixtures";
+import { displayLabel } from "../src/screens/MapScreen";
 import { watchUrl } from "../src/embed";
 
 const spot = (side: string, name: string) => SPOTS.find((s) => s.side === side && s.name === name)!;
@@ -11,7 +12,12 @@ const go = (hash: string) => act(() => {
   window.dispatchEvent(new HashChangeEvent("hashchange"));
 });
 
-beforeEach(() => history.replaceState(null, "", "/"));
+beforeEach(() => {
+  history.replaceState(null, "", "/");
+  localStorage.clear();
+  seedCache();
+  stubFetch();
+});
 afterEach(() => vi.restoreAllMocks());
 
 it("startet mit dem Map-Pool und nur Mirage aktiv ohne Zurück-Pfeil", () => {
@@ -132,49 +138,78 @@ it("zeigt bei veraltetem Spot die Karte", () => {
 });
 
 it("zeigt Standbilder mit Beschriftung", () => {
-  const jungle = spot("t", "Jungle");
-  jungle.stand = "/stand.jpg";
-  jungle.aim = "/aim.jpg";
-  try {
-    history.replaceState(null, "", `/#/mirage/t/${jungle.id}`);
-    render(<App />);
-    expect(screen.getByAltText("Hier hinstellen: Jungle").getAttribute("src")).toMatch(/\/stand\.jpg$/);
-    expect(screen.getByAltText("Hierhin zielen: Jungle").getAttribute("src")).toMatch(/\/aim\.jpg$/);
-    expect(screen.getByText("Hier hinstellen")).toBeVisible();
-    expect(screen.getByText("Hierhin zielen")).toBeVisible();
-    expect(screen.queryByText(/Bilder folgen/)).toBeNull();
-  } finally {
-    delete jungle.stand;
-    delete jungle.aim;
-  }
+  history.replaceState(null, "", "/#/mirage/t/t-jungle");
+  render(<App />);
+  expect(screen.getByAltText("Hier hinstellen: Jungle")).toHaveAttribute("src", "https://x/stand.jpg");
+  expect(screen.getByAltText("Hierhin zielen: Jungle")).toHaveAttribute("src", "https://x/aim.jpg");
+  expect(screen.getByText("Hier hinstellen")).toBeVisible();
+  expect(screen.getByText("Hierhin zielen")).toBeVisible();
+  expect(screen.queryByText(/Bilder folgen/)).toBeNull();
 });
 
 it("ohne Bilder Hinweis", () => {
-  const jungle = spot("t", "Jungle");
-  const { stand, aim } = jungle;
-  delete jungle.stand;
-  delete jungle.aim;
-  try {
-    history.replaceState(null, "", `/#/mirage/t/${jungle.id}`);
-    render(<App />);
-    expect(screen.getByText("Bilder folgen – bis dahin hilft das Video.")).toBeVisible();
-    expect(screen.queryByRole("img")).toBeNull();
-  } finally {
-    Object.assign(jungle, stand ? { stand } : {}, aim ? { aim } : {});
-  }
+  history.replaceState(null, "", "/#/mirage/ct/ct-topmid-molly");
+  render(<App />);
+  expect(screen.getByText("Bilder folgen – bis dahin hilft das Video.")).toBeVisible();
+  expect(screen.queryByRole("img")).toBeNull();
 });
 
-it("zeigt Text nur, wenn vorhanden", () => {
-  const jungle = spot("t", "Jungle");
-  const original = jungle.text;
-  delete jungle.text;
-  history.replaceState(null, "", `/#/mirage/t/${jungle.id}`);
-  const { rerender } = render(<App />);
+it("zeigt Text nur, wenn vorhanden", async () => {
+  seedCache(SPOTS.map((s) => ({ ...s, text: undefined })));
+  stubFetch(SPOTS.map((s) => ({ ...s, text: "Testzeile" })));
+  history.replaceState(null, "", "/#/mirage/t/t-jungle");
+  render(<App />);
   expect(screen.queryByTestId("lineup-text")).not.toBeInTheDocument();
-  jungle.text = "Testzeile";
-  rerender(<App />);
-  go("#/mirage/t");
-  go(`#/mirage/t/${jungle.id}`);
-  expect(screen.getByTestId("lineup-text")).toHaveTextContent("Testzeile");
-  jungle.text = original;
+  expect(await screen.findByTestId("lineup-text")).toHaveTextContent("Testzeile");
+});
+
+it("zeigt ohne Cache und ohne Netz einen Fehler mit Nochmal versuchen", async () => {
+  localStorage.clear();
+  stubFetchFail();
+  render(<App />);
+  expect(await screen.findByText("Keine Verbindung – Spots konnten nicht geladen werden")).toBeVisible();
+  stubFetch();
+  click("Nochmal versuchen");
+  expect(await screen.findByRole("button", { name: "Mirage" })).toBeVisible();
+});
+
+it("zeigt mit Cache und ohne Netz die Spots", async () => {
+  stubFetchFail();
+  history.replaceState(null, "", "/#/mirage/t");
+  render(<App />);
+  await act(async () => {});
+  expect(within(screen.getByTestId("radar")).getByRole("button", { name: "Jungle" })).toBeVisible();
+});
+
+it("fällt nach neuem Laden bei gelöschtem Spot auf die Karte zurück", async () => {
+  stubFetch(SPOTS.filter((s) => s.id !== "t-jungle"));
+  history.replaceState(null, "", "/#/mirage/t/t-jungle");
+  render(<App />);
+  expect(screen.getByRole("heading", { name: "Jungle" })).toBeInTheDocument();
+  expect(await screen.findByTestId("radar")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Jungle" })).not.toBeInTheDocument();
+});
+
+it("zeigt beim ersten Laden ohne Cache den Ladehinweis und erhält den Direktlink", async () => {
+  localStorage.clear();
+  history.replaceState(null, "", "/#/mirage/t/t-jungle");
+  render(<App />);
+  expect(screen.getByText("Lädt …")).toBeVisible();
+  expect(await screen.findByRole("heading", { name: "Jungle" })).toBeVisible();
+});
+
+it("zeigt ohne videoId keinen Video-Link", () => {
+  const spots = SPOTS.map((s) => ({ ...s, videoId: undefined, start: undefined, end: undefined }));
+  seedCache(spots);
+  stubFetch(spots);
+  history.replaceState(null, "", "/#/mirage/t/t-jungle");
+  render(<App />);
+  expect(screen.queryByRole("link", { name: /Video ansehen/ })).not.toBeInTheDocument();
+});
+
+it("kürzt lange Namen ohne Kurznamen", () => {
+  expect(displayLabel({ ...SPOTS[0], name: "Ein sehr langer Spotname", label: undefined })).toBe("Ein sehr lange…");
+  expect(displayLabel({ ...SPOTS[0], name: "Jungle", label: "   " })).toBe("Jungle");
+  expect(displayLabel({ ...SPOTS[0], label: "  Kurz  " })).toBe("Kurz");
+  expect(displayLabel({ ...SPOTS[0], label: undefined, name: "12345678901234" })).toBe("12345678901234");
 });

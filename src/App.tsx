@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { MAPS, SPOTS } from "./data/lineups";
+import { MAPS } from "./data/maps";
+import { useSpots } from "./data/useSpots";
 import { canPromptInstall, detectPlatform, isStandalone, promptInstall, wantsInstall } from "./install";
 import { parent, parseRoute, toHash, type Route } from "./route";
 import InstallScreen from "./screens/InstallScreen";
@@ -8,17 +9,17 @@ import MapPoolScreen from "./screens/MapPoolScreen";
 import MapScreen from "./screens/MapScreen";
 import SideScreen from "./screens/SideScreen";
 
-const current = () => parseRoute(location.hash, MAPS, SPOTS);
-
 export default function App() {
   const [platform] = useState(() => detectPlatform(navigator.userAgent, isStandalone()));
   const [installing, setInstalling] = useState(() => wantsInstall(location.search) && platform !== "installed");
   const [canPrompt, setCanPrompt] = useState(canPromptInstall);
-  const [route, setRoute] = useState<Route>(current);
+  const [hash, setHash] = useState(() => location.hash);
+  const { spots, status, reload } = useSpots();
+  const route = parseRoute(hash, MAPS, spots);
 
   useEffect(() => {
     const updatePrompt = () => setCanPrompt(canPromptInstall());
-    const updateRoute = () => setRoute(current());
+    const updateRoute = () => setHash(location.hash);
     window.addEventListener("beforeinstallprompt", updatePrompt);
     window.addEventListener("hashchange", updateRoute);
     return () => {
@@ -30,7 +31,7 @@ export default function App() {
   function go(next: Route) {
     // markiert Einträge der App, damit der Zurück-Pfeil sie per history.back() verlassen darf
     history.pushState({ app: true }, "", toHash(next));
-    setRoute(next);
+    setHash(toHash(next));
   }
 
   function back() {
@@ -41,7 +42,7 @@ export default function App() {
     // Direktlink: kein eigener Eintrag davor, also ersetzen statt die App zu verlassen
     const up = parent(route);
     history.replaceState(null, "", toHash(up));
-    setRoute(up);
+    setHash(toHash(up));
   }
 
   function closeInstall() {
@@ -62,6 +63,19 @@ export default function App() {
     );
   }
 
+  if (spots.length === 0 && status === "loading") {
+    return <main className="screen"><p role="status">Lädt …</p></main>;
+  }
+
+  if (spots.length === 0 && status === "error") {
+    return (
+      <main className="screen">
+        <p role="alert">Keine Verbindung – Spots konnten nicht geladen werden</p>
+        <button type="button" onClick={reload}>Nochmal versuchen</button>
+      </main>
+    );
+  }
+
   switch (route.screen) {
     case "maps":
       return <MapPoolScreen maps={MAPS} onPick={(map) => go({ screen: "side", map })} />;
@@ -78,12 +92,12 @@ export default function App() {
         <MapScreen
           side={route.side}
           map={MAPS.find((m) => m.id === route.map)!}
-          spots={SPOTS}
+          spots={spots}
           onBack={back}
           onPick={(spot) => go({ ...route, screen: "spot", spot })}
         />
       );
     case "spot":
-      return <LineupScreen key={route.spot} spot={SPOTS.find((s) => s.id === route.spot)!} onBack={back} />;
+      return <LineupScreen key={route.spot} spot={spots.find((s) => s.id === route.spot)!} onBack={back} />;
   }
 }

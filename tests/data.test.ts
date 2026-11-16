@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { MAPS, SPOTS, validate } from "../src/data/lineups";
+import { MAPS } from "../src/data/maps";
+import { validate } from "../src/data/validate";
+import { FIXTURE as SPOTS } from "./fixtures";
 import type { Spot } from "../src/data/types";
 
 const base = SPOTS[0];
@@ -14,6 +16,10 @@ describe("validate", () => {
     expect(validate(MAPS, [base, { ...base }])).toHaveLength(1);
   });
 
+  it("akzeptiert Spots ohne Videoangaben", () => {
+    expect(errorsFor({ videoId: undefined, start: undefined, end: undefined })).toEqual([]);
+  });
+
   it.each([
     ["x über 100", { x: 101 }],
     ["y unter 0", { y: -1 }],
@@ -21,7 +27,6 @@ describe("validate", () => {
     ["unbekannte Map", { map: "gibtsnicht" }],
     ["ungültige Seite", { side: "x" }],
     ["ungültiger Typ", { type: "flash" }],
-    ["leere videoId", { videoId: "" }],
     ["inaktive Map", { map: "inferno" }],
   ])("meldet %s", (_name, patch) => {
     expect(errorsFor(patch)).toHaveLength(1);

@@ -8,16 +8,15 @@ export type Spot = {
   type: NadeType;
   name: string;
   /** Kurzname für das Schild auf dem Radar */
-  label: string;
-  area: "A" | "Mid" | "B";
+  label?: string;
   /** Landestelle in % des Radarbilds (0,0 = oben links) */
   x: number;
   y: number;
-  videoId: string;
+  videoId?: string;
   /** Sekunden im Video */
-  start: number;
-  end: number;
-  /** Standbild-URLs, aus src/assets/lineups/<id>-stand.jpg / <id>-aim.jpg */
+  start?: number;
+  end?: number;
+  /** Öffentliche URLs der Standbilder */
   stand?: string;
   aim?: string;
   text?: string;

@@ -1,13 +1,9 @@
-import mirageRadar from "../assets/maps/mirage.png";
-import type { MapInfo, Spot } from "./types";
+import type { Spot } from "./types";
+
+export { MAPS } from "./maps";
+export { validate } from "./validate";
 
 const IMAGES = import.meta.glob<string>("../assets/lineups/*.jpg", { eager: true, import: "default" });
-
-export const MAPS: MapInfo[] = [
-  { id: "mirage", name: "Mirage", radar: mirageRadar, active: true },
-  { id: "inferno", name: "Inferno", active: false },
-  { id: "dust2", name: "Dust2", active: false },
-];
 
 // Landestellen in % des Radars, angelehnt an die Callouts von csdb.gg (siehe src/assets/maps/QUELLE.md).
 // Quellen der Videos: siehe docs/superpowers/specs/2026-11-16-cs2-lineups-design.md
@@ -15,7 +11,7 @@ const TIGERR = "Q4Dwg9Z0wZ0";
 const UTILITY10 = "SGeV9W39X68";
 const NADES = "xPCYPKFG44E";
 
-type Row = [id: string, side: Spot["side"], type: Spot["type"], name: string, label: string, area: Spot["area"], x: number, y: number, videoId: string, start: number, end: number];
+type Row = [id: string, side: Spot["side"], type: Spot["type"], name: string, label: string, area: "A" | "Mid" | "B", x: number, y: number, videoId: string, start: number, end: number];
 
 const ROWS: Row[] = [
   ["t-window-spawn", "t", "smoke", "Mid Window (aus T-Spawn)", "Window", "Mid", 41, 50, TIGERR, 15, 81],
@@ -68,34 +64,13 @@ const TEXTS: Record<string, string> = {
   "ct-b-aps": "Hinter die Mülltonne stellen · Linksklick",
 };
 
-export const SPOTS: Spot[] = ROWS.map(([id, side, type, name, label, area, x, y, videoId, start, end]) => {
+export const SPOTS: Spot[] = ROWS.map(([id, side, type, name, label, _area, x, y, videoId, start, end]) => {
   const stand = IMAGES[`../assets/lineups/${id}-stand.jpg`];
   const aim = IMAGES[`../assets/lineups/${id}-aim.jpg`];
   return {
-    id, map: "mirage", side, type, name, label, area, x, y, videoId, start, end,
+    id, map: "mirage", side, type, name, label, x, y, videoId, start, end,
     ...(TEXTS[id] ? { text: TEXTS[id] } : {}),
     ...(stand !== undefined ? { stand } : {}),
     ...(aim !== undefined ? { aim } : {}),
   };
 });
-
-/** Prüft die Daten; leere Liste = gültig. */
-export function validate(maps: MapInfo[], spots: Spot[]): string[] {
-  const errors: string[] = [];
-  const seen = new Set<string>();
-  const pct = (n: number) => Number.isFinite(n) && n >= 0 && n <= 100;
-  for (const s of spots) {
-    const at = `Spot ${s.id}`;
-    if (seen.has(s.id)) errors.push(`${at}: id doppelt`);
-    seen.add(s.id);
-    const map = maps.find((m) => m.id === s.map);
-    if (!map) errors.push(`${at}: Map ${s.map} unbekannt`);
-    else if (!map.active) errors.push(`${at}: Map ${s.map} ist nicht aktiv`);
-    if (s.side !== "t" && s.side !== "ct") errors.push(`${at}: Seite ${s.side} ungültig`);
-    if (s.type !== "smoke" && s.type !== "molly") errors.push(`${at}: Typ ${s.type} ungültig`);
-    if (!pct(s.x) || !pct(s.y)) errors.push(`${at}: Koordinaten außerhalb 0–100`);
-    if (!(s.start < s.end)) errors.push(`${at}: start muss vor end liegen`);
-    if (!s.videoId) errors.push(`${at}: videoId fehlt`);
-  }
-  return errors;
-}

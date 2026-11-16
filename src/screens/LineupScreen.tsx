@@ -23,10 +23,10 @@ export default function LineupScreen({ spot, onBack }: { spot: Spot; onBack: () 
           )}
         </div>
       ) : (
-        <p className="no-images">Bilder folgen – bis dahin hilft das Video.</p>
+        <p className="no-images">{spot.videoId ? "Bilder folgen – bis dahin hilft das Video." : "Bilder folgen."}</p>
       )}
       {spot.text && <p className="lineup-text" data-testid="lineup-text">{spot.text}</p>}
-      <a className="source" href={watchUrl(spot)} target="_blank" rel="noreferrer">Video ansehen (YouTube)</a>
+      {spot.videoId && <a className="source" href={watchUrl(spot)} target="_blank" rel="noreferrer">Video ansehen (YouTube)</a>}
     </main>
   );
 }

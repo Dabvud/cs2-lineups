@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MAPS, SPOTS } from "../src/data/lineups";
+import { MAPS } from "../src/data/maps";
+import { FIXTURE as SPOTS } from "./fixtures";
 import { parent, parseRoute, toHash, type Route } from "../src/route";
 
 const ctSpot = SPOTS.find((s) => s.side === "ct")!;

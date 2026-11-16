@@ -4,7 +4,12 @@ import type { MapInfo, Side, Spot } from "../data/types";
 
 type Props = { side: Side; map: MapInfo; spots: Spot[]; onPick: (spot: string) => void; onBack: () => void };
 
-const pointLabel = (s: Spot) => (s.type === "molly" ? `${s.label} (Molly)` : s.label);
+export function displayLabel(s: Spot): string {
+  const label = s.label?.trim() || s.name;
+  return label.length > 14 ? `${label.slice(0, 14)}…` : label;
+}
+
+const pointLabel = (s: Spot) => (s.type === "molly" ? `${displayLabel(s)} (Molly)` : displayLabel(s));
 const TYPE_NAME = { smoke: "Smoke", molly: "Molly" } as const;
 
 /** Lineups mit exakt gleicher Landestelle teilen sich einen Punkt. */
@@ -40,7 +45,7 @@ export default function MapScreen({ side, map, spots, onPick, onBack }: Props) {
               onClick={() => (g.length === 1 ? onPick(g[0].id) : setChoice(g))}
             >
               <span className="dot" />
-              <span className="tag" aria-hidden="true">{[...new Set(g.map((s) => s.label))].join(" / ")}</span>
+              <span className="tag" aria-hidden="true">{[...new Set(g.map(displayLabel))].join(" / ")}</span>
             </button>
           );
         })}
