@@ -28,6 +28,10 @@ Mindestens 6 Ziffern, nur Zahlen. Geräte mit dem alten PIN werden beim nächste
 
 Kostenlose Projekte schlafen nach etwa einer Woche ohne Zugriff ein. Ein GitHub-Job (`.github/workflows/keepalive.yml`) liest deshalb alle 3 Tage einmal die Spots. Falls das Projekt trotzdem pausiert: https://supabase.com/dashboard → Projekt öffnen → **Restore project**.
 
+Achtung: GitHub schaltet geplante Jobs ab, wenn 60 Tage lang nichts im Repo passiert (neue Spots zählen nicht, die liegen in Supabase). Dann unter GitHub → Actions → „Supabase wach halten“ → **Enable workflow** klicken. Solange die App regelmäßig benutzt wird, bleibt Supabase ohnehin wach.
+
+Nach zu vielen falschen PINs (20 in 10 Minuten) sperrt der Server das Bearbeiten für 10 Minuten für alle.
+
 ## Backup
 
 Alle Spots als JSON: `https://ryvcxbmcsiuvgdehivao.supabase.co/rest/v1/spots?select=*` (Header `apikey` = anon key aus `src/config.ts`). Die ursprünglichen 22 Spots samt Bildern liegen zusätzlich in `scripts/seed/`; `node scripts/migrate.mjs` spielt sie wieder ein (vorhandene werden übersprungen).

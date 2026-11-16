@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { checkPin, deleteSpot, InvalidError, PinError, saveSpot } from "../src/data/api";
+import { checkPin, deleteSpot, InvalidError, LockedError, PinError, saveSpot } from "../src/data/api";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "../src/config";
 import { imageUrl } from "../src/data/remote";
 import type { SpotInput } from "../supabase/functions/spots/logic";
@@ -29,6 +29,17 @@ it("gibt nur bei 401 false zurück, bei Netz- und Serverfehlern einen Fehler", a
   await expect(checkPin("123456")).rejects.toThrow();
   vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
   await expect(checkPin("123456")).rejects.toThrow("offline");
+});
+
+it("wirft bei 429 einen LockedError bei der PIN-Prüfung", async () => {
+  reply(429, { error: "locked" });
+  await expect(checkPin("123456")).rejects.toBeInstanceOf(LockedError);
+});
+
+it("wirft bei 429 einen LockedError beim Speichern und Löschen", async () => {
+  reply(429, { error: "locked" });
+  await expect(saveSpot("123456", "update", input, {})).rejects.toBeInstanceOf(LockedError);
+  await expect(deleteSpot("123456", "t-test")).rejects.toBeInstanceOf(LockedError);
 });
 
 it("sendet Spot und Bilder und wandelt die Serverzeile in einen Spot um", async () => {

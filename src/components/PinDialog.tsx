@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { checkPin } from "../data/api";
+import { checkPin, LockedError } from "../data/api";
 
 export default function PinDialog({ onSuccess, onCancel }: { onSuccess: (pin: string) => void; onCancel: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -32,8 +32,10 @@ export default function PinDialog({ onSuccess, onCancel }: { onSuccess: (pin: st
         input.current?.focus();
         input.current?.select();
       }
-    } catch {
-      if (active.current) setError("Keine Verbindung – PIN konnte nicht geprüft werden");
+    } catch (error) {
+      if (active.current) setError(error instanceof LockedError
+        ? error.message
+        : "Keine Verbindung – PIN konnte nicht geprüft werden");
     } finally {
       if (active.current) setBusy(false);
     }

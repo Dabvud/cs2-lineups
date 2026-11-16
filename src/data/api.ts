@@ -10,6 +10,13 @@ export class PinError extends Error {
   }
 }
 
+export class LockedError extends Error {
+  constructor() {
+    super("Zu viele Fehlversuche – bitte in 10 Minuten nochmal");
+    this.name = "LockedError";
+  }
+}
+
 export class InvalidError extends Error {
   details: string[];
   constructor(details: string[]) {
@@ -33,6 +40,7 @@ async function request(pin: string, action: string, input?: SpotInput | { id: st
     body,
   });
   if (response.status === 401) throw new PinError();
+  if (response.status === 429) throw new LockedError();
   if (response.status === 400) {
     const data = await response.json();
     throw new InvalidError(Array.isArray(data.details) ? data.details.filter((d: unknown) => typeof d === "string") : []);

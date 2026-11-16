@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import App from "../src/App";
-import { checkPin, deleteSpot, InvalidError, PinError, saveSpot } from "../src/data/api";
+import { checkPin, deleteSpot, InvalidError, LockedError, PinError, saveSpot } from "../src/data/api";
 import { getPin, setPin } from "../src/data/pin";
 import { compressImage } from "../src/editor/image";
 import { FIXTURE, seedCache, stubFetch } from "./fixtures";
@@ -81,6 +81,17 @@ it("falscher PIN bleibt im Dialog mit Hinweis", async () => {
   expect(location.hash).toBe("#/mirage/t");
 });
 
+it("zeigt bei gesperrter PIN-Prüfung die Wartezeit im Dialog", async () => {
+  vi.mocked(checkPin).mockRejectedValueOnce(new LockedError());
+  await open("#/mirage/t", false);
+  click("Neuer Spot");
+  await enterPin();
+  const dialog = screen.getByRole("dialog", { name: "PIN eingeben" });
+  expect(await within(dialog).findByText("Zu viele Fehlversuche – bitte in 10 Minuten nochmal")).toBeVisible();
+  expect(getPin()).toBeNull();
+  expect(location.hash).toBe("#/mirage/t");
+});
+
 it("Speichern gesperrt, solange Pflichtangaben fehlen", async () => {
   await open();
   expect(screen.getByRole("button", { name: "Speichern" })).toBeDisabled();
@@ -143,6 +154,36 @@ it("401 beim Speichern löscht den PIN und fragt neu, Eingaben bleiben", async (
   expect(screen.getByLabelText("Name")).toHaveValue(saved.name);
   click("Speichern");
   expect(await screen.findByRole("heading", { name: saved.name })).toBeVisible();
+});
+
+it("zeigt beim gesperrten Speichern die Wartezeit und erhält die Eingaben", async () => {
+  vi.mocked(saveSpot).mockRejectedValueOnce(new LockedError());
+  await open();
+  const files = fill();
+  click("Speichern");
+  expect(await screen.findByText("Zu viele Fehlversuche – bitte in 10 Minuten nochmal")).toBeVisible();
+  expect(screen.getByLabelText("Name")).toHaveValue(saved.name);
+  expect(screen.getByTestId("landing-point").style.left).toBe("44%");
+  expect(screen.getByAltText("Vorschau: Hier hinstellen")).toHaveAttribute("src", "blob:preview");
+  expect(getPin()).toBe("123456");
+  expect(location.hash).toBe("#/mirage/t/neu");
+  click("Speichern");
+  expect(await screen.findByRole("heading", { name: saved.name })).toBeVisible();
+  expect(saveSpot).toHaveBeenLastCalledWith("123456", "create", expect.objectContaining({ name: saved.name }), files);
+});
+
+it("zeigt beim gesperrten Löschen die Wartezeit und erhält die Eingaben", async () => {
+  vi.mocked(deleteSpot).mockRejectedValueOnce(new LockedError());
+  await open("#/mirage/t/t-jungle/bearbeiten");
+  fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Geänderter Jungle" } });
+  click("Löschen");
+  click("Ja, löschen");
+  expect(await screen.findByText("Zu viele Fehlversuche – bitte in 10 Minuten nochmal")).toBeVisible();
+  expect(screen.getByLabelText("Name")).toHaveValue("Geänderter Jungle");
+  expect(screen.getByRole("button", { name: "Löschen" })).toBeEnabled();
+  expect(getPin()).toBe("123456");
+  expect(location.hash).toBe("#/mirage/t/t-jungle/bearbeiten");
+  expect(JSON.parse(localStorage.getItem("cs2-lineups.spots")!).some((s: { id: string }) => s.id === "t-jungle")).toBe(true);
 });
 
 it("Netzwerkfehler beim Speichern lässt das Formular stehen", async () => {

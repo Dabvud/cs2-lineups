@@ -1,5 +1,5 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { imagePath, newSpotId, pinMatches, validateInput } from "./logic.ts";
+import { imagePath, isLocked, newSpotId, PIN_WINDOW_MINUTES, pinMatches, validateInput } from "./logic.ts";
 import type { Action } from "./logic.ts";
 
 const corsHeaders = {
@@ -35,10 +35,37 @@ Deno.serve(async (request: Request): Promise<Response> => {
     return invalid("Formulardaten konnten nicht gelesen werden.");
   }
 
-  const pin = form.get("pin");
-  if (!pinMatches(typeof pin === "string" ? pin : "", Deno.env.get("EDIT_PIN"))) {
-    await sleep(1000);
-    return reply(401, { error: "pin" });
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return reply(500, { error: "server" });
+
+  let client: ReturnType<typeof createClient>;
+  try {
+    client = createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const now = Date.now();
+    const { count, error } = await client.from("pin_attempts")
+      .select("id", { count: "exact", head: true })
+      .gte("at", new Date(now - PIN_WINDOW_MINUTES * 60_000).toISOString());
+    if (error) throw error;
+    if (count === null) throw new Error("Anzahl der PIN-Fehlversuche fehlt.");
+    // Die globale Sperre gilt auch für einen richtigen PIN.
+    if (isLocked(count)) return reply(429, { error: "locked" });
+
+    const pin = form.get("pin");
+    if (!pinMatches(typeof pin === "string" ? pin : "", Deno.env.get("EDIT_PIN"))) {
+      const { error: insertError } = await client.from("pin_attempts").insert({});
+      if (insertError) throw insertError;
+      const { error: cleanupError } = await client.from("pin_attempts").delete()
+        .lt("at", new Date(now - 24 * 60 * 60_000).toISOString());
+      if (cleanupError) throw cleanupError;
+      await sleep(1000);
+      return reply(401, { error: "pin" });
+    }
+  } catch {
+    console.error("spots: PIN-Prüfung fehlgeschlagen.");
+    return reply(500, { error: "server" });
   }
 
   const action = form.get("action");
@@ -83,17 +110,10 @@ Deno.serve(async (request: Request): Promise<Response> => {
     fields = { ...value, updated_at: new Date().toISOString() };
   }
 
-  const url = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !serviceKey) return reply(500, { error: "server" });
-
   // Neue Uploads bei einem fehlgeschlagenen DB-Schreibvorgang wieder entfernen.
   const uploaded: string[] = [];
   let saved = false;
   try {
-    const client = createClient(url, serviceKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
     const bucket = client.storage.from("lineups");
     try {
       let old: { stand_path: string | null; aim_path: string | null } | null = null;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   imagePath,
+  isLocked,
   newSpotId,
   pinMatches,
   validateInput,
@@ -17,6 +18,12 @@ const spot = {
 };
 const jpeg = { size: 200_000, type: "image/jpeg" };
 const images = { stand: jpeg, aim: jpeg };
+
+describe("isLocked", () => {
+  it.each([[19, false], [20, true], [0, false]] as const)("sperrt bei %i Fehlversuchen: %s", (failures, locked) => {
+    expect(isLocked(failures)).toBe(locked);
+  });
+});
 
 describe("pinMatches", () => {
   it.each([

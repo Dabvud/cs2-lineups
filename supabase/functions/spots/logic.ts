@@ -19,6 +19,12 @@ export type Action = "check" | "create" | "update" | "delete";
 export const ACTIVE_MAPS = ["mirage"];
 export const MAX_IMAGE_BYTES = 1_000_000;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+export const PIN_WINDOW_MINUTES = 10;
+export const PIN_MAX_FAILURES = 20;
+
+export function isLocked(failuresInWindow: number): boolean {
+  return failuresInWindow >= PIN_MAX_FAILURES;
+}
 
 export function pinMatches(given: string, expected: string | undefined): boolean {
   if (!expected || !/^\d{6,}$/.test(expected)) return false;

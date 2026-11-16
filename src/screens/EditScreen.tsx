@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent } from "react";
 import type { SpotInput } from "../../supabase/functions/spots/logic";
 import TopBar from "../components/TopBar";
-import { deleteSpot, InvalidError, PinError, saveSpot } from "../data/api";
+import { deleteSpot, InvalidError, LockedError, PinError, saveSpot } from "../data/api";
 import type { MapInfo, NadeType, Side, Spot } from "../data/types";
 import { compressImage } from "../editor/image";
 import { snapPoint } from "../editor/snap";
@@ -92,6 +92,8 @@ export default function EditScreen({ map, side, spots, spot, pin, onBack, onPinR
   function report(error: unknown, action: "save" | "delete") {
     if (error instanceof PinError) {
       onPinRequired();
+    } else if (error instanceof LockedError) {
+      setErrors([error.message]);
     } else if (error instanceof InvalidError) {
       setErrors(error.details.length ? error.details : ["Bitte die Angaben prüfen."]);
     } else {
