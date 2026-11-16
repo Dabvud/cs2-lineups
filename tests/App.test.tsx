@@ -106,10 +106,10 @@ it("bietet bei gleicher Landestelle eine Auswahl an", async () => {
 });
 
 it("öffnet einen Direktlink sofort", () => {
-  const ct = spot("ct", "B defensiv");
+  const ct = spot("ct", "B Aps");
   history.replaceState(null, "", `/#/ct/mirage/${ct.id}`);
   render(<App />);
-  expect(screen.getByRole("heading", { name: "B defensiv" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "B Aps" })).toBeInTheDocument();
 });
 
 it("zeigt bei veraltetem Spot die Karte", () => {
@@ -138,14 +138,23 @@ it("zeigt Standbilder mit Beschriftung", () => {
 
 it("ohne Bilder Hinweis", () => {
   const jungle = spot("t", "Jungle");
-  history.replaceState(null, "", `/#/t/mirage/${jungle.id}`);
-  render(<App />);
-  expect(screen.getByText("Bilder folgen – bis dahin hilft das Video.")).toBeVisible();
-  expect(screen.queryByRole("img")).toBeNull();
+  const { stand, aim } = jungle;
+  delete jungle.stand;
+  delete jungle.aim;
+  try {
+    history.replaceState(null, "", `/#/t/mirage/${jungle.id}`);
+    render(<App />);
+    expect(screen.getByText("Bilder folgen – bis dahin hilft das Video.")).toBeVisible();
+    expect(screen.queryByRole("img")).toBeNull();
+  } finally {
+    Object.assign(jungle, stand ? { stand } : {}, aim ? { aim } : {});
+  }
 });
 
 it("zeigt Text nur, wenn vorhanden", () => {
   const jungle = spot("t", "Jungle");
+  const original = jungle.text;
+  delete jungle.text;
   history.replaceState(null, "", `/#/t/mirage/${jungle.id}`);
   const { rerender } = render(<App />);
   expect(screen.queryByTestId("lineup-text")).not.toBeInTheDocument();
@@ -154,5 +163,5 @@ it("zeigt Text nur, wenn vorhanden", () => {
   go("#/t/mirage");
   go(`#/t/mirage/${jungle.id}`);
   expect(screen.getByTestId("lineup-text")).toHaveTextContent("Testzeile");
-  delete jungle.text;
+  jungle.text = original;
 });

@@ -33,23 +33,47 @@ const ROWS: Row[] = [
   ["t-window-molly", "t", "molly", "Window (von Top Mid)", "Window", "Mid", 38, 47, UTILITY10, 343, 372],
   ["t-balcony-molly", "t", "molly", "Balcony", "Balcony", "B", 33, 24, UTILITY10, 452, 479], // geschätzt
   ["t-bench-molly", "t", "molly", "Bench", "Bench", "B", 14, 27, UTILITY10, 479, 514], // geschätzt
-  ["ct-window", "ct", "smoke", "Window", "Window", "Mid", 63, 46, NADES, 796, 821], // geschätzt
   ["ct-topmid-molly", "ct", "molly", "Top Mid", "Top Mid", "Mid", 69, 44, NADES, 821, 838],
-  ["ct-bottom-con", "ct", "smoke", "Bottom Connector", "Bottom Con", "Mid", 48, 58, NADES, 882, 922],
+  ["ct-bottom-con", "ct", "smoke", "Bottom Connector", "Bottom Con", "Mid", 48, 58, NADES, 909, 922],
   ["ct-ramp-molly", "ct", "molly", "Ramp", "Ramp", "A", 68, 65, NADES, 922, 931],
   ["ct-ramp", "ct", "smoke", "Ramp", "Ramp", "A", 68, 65, NADES, 931, 939],
   ["ct-palace", "ct", "smoke", "Palace (von Market)", "Palace", "A", 66, 74, NADES, 972, 988], // geschätzt
-  ["ct-a-def", "ct", "smoke", "A defensiv", "A def.", "A", 61, 69, NADES, 988, 1005], // geschätzt
-  ["ct-a-plant-molly", "ct", "molly", "A gegen den Plant", "Plant", "A", 54, 77, NADES, 1005, 1030], // geschätzt
+  ["ct-a-plant-molly", "ct", "molly", "A gegen den Plant", "Plant", "A", 54, 77, NADES, 1004, 1019], // geschätzt
   ["ct-b-aps", "ct", "smoke", "B Aps", "Aps", "B", 31, 22, NADES, 1041, 1048], // geschätzt
-  ["ct-b-def", "ct", "smoke", "B defensiv", "B def.", "B", 34, 35, NADES, 1074, 1123], // geschätzt
 ];
+
+/** Wurfanleitung je Lineup, aus den Transkripten der Videos zusammengefasst. */
+const TEXTS: Record<string, string> = {
+  "t-window-spawn": "Ganz in die Ecke an der Treppe · zweiter Bogen im Teppich · Jumpthrow",
+  "t-connector": "In die Mülltonne stellen · Ecke der ersten Stufe im Teppichmuster · Jumpthrow",
+  "t-catwalk-spawn": "In die Mülltonne stellen · Kante des schrägen Palmblatts · Jumpthrow",
+  "t-mid-cross": "In die Mülltonne stellen · Antennenspitze · normaler Wurf, kein Jump",
+  "t-window-top": "Hinter den Kisten in die Ecke, ducken · Kistenecke · normaler Wurf",
+  "t-catwalk-b": "Ecke in Back Alley · oberste Kante des Dachstücks · normaler Wurf",
+  "t-market-window": "Gleiche Ecke · der Linie hoch bis zum Dach folgen · Jumpthrow",
+  "t-market-door": "Gleiche Ecke · schräg runter bis zur Dachecke · Jumpthrow",
+  "t-ct": "Ganz in die Ecke · Mitte des Holzbalkens · Jumpthrow",
+  "t-jungle": "Auf den Steg, um die Ecke bis zum Holzbalken · Oberkante, leicht links · normaler Wurf",
+  "t-stairs": "Gleiche Ecke wie Jungle · Risse in der Wand · Links + Rechts halten, Jumpthrow",
+  "t-firebox-molly": "Knapp über die Mitte des Bauteils, über der Kante · Linksklick",
+  "t-window-molly": "Linke Ecke an Top Mid, zurück bis zur Kante · mittleres Antennenstück · laufen und werfen",
+  "t-balcony-molly": "Beim Rauslaufen in die Ecke · Linie in der Wand hoch bis zum Bauteil · Linksklick",
+  "t-bench-molly": "Beim Hochlaufen an die rechte Wand · laufen und durchs Fenster werfen",
+  "ct-topmid-molly": "Auf die Bank · Fadenkreuz setzen, ohne Maus nach links gehen · vorlaufen, Linksklick",
+  "ct-bottom-con": "Auf Short hinter den Boost stellen · Linksklick",
+  "ct-ramp-molly": "Aus CT-Spawn kommend · beim Vorlaufen Linksklick",
+  "ct-ramp": "Rechts neben die Raketen · rechts vom Schornstein-Dach · Linksklick",
+  "ct-palace": "Außerhalb von Market in die Ecke · Jumpthrow",
+  "ct-a-plant-molly": "In die Ecke stellen · aufs Gebäude zielen · Linksklick",
+  "ct-b-aps": "Hinter die Mülltonne stellen · Linksklick",
+};
 
 export const SPOTS: Spot[] = ROWS.map(([id, side, type, name, label, area, x, y, videoId, start, end]) => {
   const stand = IMAGES[`../assets/lineups/${id}-stand.jpg`];
   const aim = IMAGES[`../assets/lineups/${id}-aim.jpg`];
   return {
     id, map: "mirage", side, type, name, label, area, x, y, videoId, start, end,
+    ...(TEXTS[id] ? { text: TEXTS[id] } : {}),
     ...(stand !== undefined ? { stand } : {}),
     ...(aim !== undefined ? { aim } : {}),
   };

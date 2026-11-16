@@ -29,15 +29,19 @@ describe("validate", () => {
 });
 
 describe("Mirage-Bestand", () => {
-  it("hat 15 T- und 10 CT-Lineups", () => {
+  it("hat zu jedem Lineup eine Wurfanleitung", () => {
+    expect(SPOTS.filter((s) => !s.text).map((s) => s.id)).toEqual([]);
+  });
+
+  it("hat 15 T- und 7 CT-Lineups", () => {
     expect(SPOTS.filter((s) => s.side === "t")).toHaveLength(15);
-    expect(SPOTS.filter((s) => s.side === "ct")).toHaveLength(10);
+    expect(SPOTS.filter((s) => s.side === "ct")).toHaveLength(7);
   });
 
   it.each([
     ["t", "Ticket/CT", "Q4Dwg9Z0wZ0", 335, 371],
     ["t", "Bench", "SGeV9W39X68", 479, 514],
-    ["ct", "B defensiv", "xPCYPKFG44E", 1074, 1123],
+    ["ct", "B Aps", "xPCYPKFG44E", 1041, 1048],
   ])("%s %s hat die Zeiten aus der Spec", (side, name, videoId, start, end) => {
     const spot = SPOTS.find((s) => s.side === side && s.name === name);
     expect(spot).toMatchObject({ videoId, start, end });
