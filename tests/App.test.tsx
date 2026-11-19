@@ -151,6 +151,25 @@ it("zeigt Varianten als Bildkacheln mit Typ", () => {
   expect(molly.querySelector("img")).toHaveAttribute("src", img("ramp-aim"));
 });
 
+it("wechselt direkt zur anderen Variante", async () => {
+  render(<App />);
+  go("#/mirage/t");
+  click("Window");
+  click("Mid Window (aus T-Spawn) Smoke");
+  click("⇄ Andere Variante: Mid Window (von Top Mid)");
+  expect(screen.getByRole("heading", { name: "Mid Window (von Top Mid)" })).toBeInTheDocument();
+  expect(location.hash).toBe("#/mirage/t/t-window-top");
+  click("Zurück");
+  expect(await screen.findByTestId("radar")).toBeInTheDocument();
+});
+
+it("zeigt ohne Varianten keinen Wechsel", () => {
+  render(<App />);
+  go("#/mirage/t");
+  click("Jungle");
+  expect(screen.queryByRole("button", { name: /Andere Variante/ })).not.toBeInTheDocument();
+});
+
 it("öffnet einen Direktlink sofort", () => {
   const ct = spot("ct", "B Aps");
   history.replaceState(null, "", `/#/mirage/ct/${ct.id}`);

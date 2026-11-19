@@ -9,7 +9,7 @@ import InstallScreen from "./screens/InstallScreen";
 import EditScreen from "./screens/EditScreen";
 import LineupScreen from "./screens/LineupScreen";
 import MapPoolScreen from "./screens/MapPoolScreen";
-import MapScreen from "./screens/MapScreen";
+import MapScreen, { groupByLanding } from "./screens/MapScreen";
 import SideScreen from "./screens/SideScreen";
 
 export default function App() {
@@ -119,8 +119,12 @@ export default function App() {
           onNew={() => openEditor({ ...route, screen: "new" })}
         />
       );
-    case "spot":
-      return <LineupScreen key={route.spot} spot={spots.find((s) => s.id === route.spot)!} onBack={back} onEdit={pin ? () => openEditor({ ...route, screen: "edit" }) : undefined} />;
+    case "spot": {
+      const siblings = groupByLanding(spots.filter((s) => s.map === route.map && s.side === route.side))
+        .find((g) => g.some((s) => s.id === route.spot))!.filter((s) => s.id !== route.spot);
+      return <LineupScreen key={route.spot} spot={spots.find((s) => s.id === route.spot)!} siblings={siblings}
+        onSwitch={(id) => go({ ...route, spot: id }, true)} onBack={back} onEdit={pin ? () => openEditor({ ...route, screen: "edit" }) : undefined} />;
+    }
     case "new":
     case "edit":
       return <EditScreen

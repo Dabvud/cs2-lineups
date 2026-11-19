@@ -2,7 +2,9 @@ import TopBar from "../components/TopBar";
 import type { Spot } from "../data/types";
 import { watchUrl } from "../embed";
 
-export default function LineupScreen({ spot, onBack, onEdit }: { spot: Spot; onBack: () => void; onEdit?: () => void }) {
+type Props = { spot: Spot; siblings?: Spot[]; onSwitch?: (id: string) => void; onBack: () => void; onEdit?: () => void };
+
+export default function LineupScreen({ spot, siblings = [], onSwitch, onBack, onEdit }: Props) {
   return (
     <main className={`screen side-${spot.side}`}>
       <TopBar title={spot.type === "molly" ? "Molly" : "Smoke"} onBack={onBack} />
@@ -28,6 +30,9 @@ export default function LineupScreen({ spot, onBack, onEdit }: { spot: Spot; onB
       )}
       {spot.text && <p className="lineup-text" data-testid="lineup-text">{spot.text}</p>}
       {spot.videoId && <a className="source" href={watchUrl(spot)} target="_blank" rel="noreferrer">Video ansehen (YouTube)</a>}
+      {onSwitch && siblings.map((s) => (
+        <button type="button" key={s.id} className="switch-variant" onClick={() => onSwitch(s.id)}>⇄ Andere Variante: {s.name}</button>
+      ))}
     </main>
   );
 }
