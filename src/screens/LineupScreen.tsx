@@ -1,4 +1,5 @@
 import TopBar from "../components/TopBar";
+import ZoomImage from "../components/ZoomImage";
 import type { Spot } from "../data/types";
 import { watchUrl } from "../embed";
 import { TYPE_NAME } from "./MapScreen";
@@ -15,13 +16,13 @@ export default function LineupScreen({ spot, siblings = [], onSwitch, onBack, on
         <div className="shots">
           {spot.stand && (
             <figure>
-              <img src={spot.stand} alt={`Hier hinstellen: ${spot.name}`} />
+              <ZoomImage src={spot.stand} alt={`Hier hinstellen: ${spot.name}`} />
               <figcaption>Hier hinstellen</figcaption>
             </figure>
           )}
           {spot.aim && (
             <figure>
-              <img src={spot.aim} alt={`Hierhin zielen: ${spot.name}`} />
+              <ZoomImage src={spot.aim} alt={`Hierhin zielen: ${spot.name}`} />
               <figcaption>Hierhin zielen</figcaption>
             </figure>
           )}
