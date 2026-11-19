@@ -124,6 +124,33 @@ it("bietet bei gleicher Landestelle eine Auswahl an", async () => {
   expect(screen.getByRole("heading", { name: "Mid Window (von Top Mid)" })).toBeInTheDocument();
 });
 
+it("zeigt die Anzahl der Varianten im Kreis", () => {
+  render(<App />);
+  go("#/mirage/t");
+  expect(screen.getByRole("button", { name: "Window" })).toHaveTextContent("2");
+  expect(screen.getByRole("button", { name: "Jungle" })).not.toHaveTextContent(/\d/);
+});
+
+it("zeigt Varianten als Bildkacheln mit Typ", () => {
+  const img = (id: string) => `https://x/${id}.jpg`;
+  const withImages = SPOTS.map((s) =>
+    s.id === "t-window-spawn" || s.id === "t-window-top" ? { ...s, stand: img(`${s.id}-stand`), aim: img(`${s.id}-aim`) }
+      : s.id === "ct-ramp-molly" ? { ...s, aim: img("ramp-aim") } : s);
+  seedCache(withImages);
+  stubFetch(withImages);
+  render(<App />);
+  go("#/mirage/t");
+  click("Window");
+  const dialog = screen.getByRole("dialog", { name: "Lineup wählen" });
+  expect(within(dialog).getByRole("heading")).toHaveTextContent("2 Varianten");
+  expect(dialog.querySelectorAll("img")).toHaveLength(2);
+  go("#/mirage/ct");
+  click("Ramp (Molly) / Ramp");
+  expect(screen.getByRole("button", { name: "Ramp Smoke" })).toBeInTheDocument();
+  const molly = screen.getByRole("button", { name: "Ramp Molly" });
+  expect(molly.querySelector("img")).toHaveAttribute("src", img("ramp-aim"));
+});
+
 it("öffnet einen Direktlink sofort", () => {
   const ct = spot("ct", "B Aps");
   history.replaceState(null, "", `/#/mirage/ct/${ct.id}`);

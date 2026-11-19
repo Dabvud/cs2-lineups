@@ -13,7 +13,7 @@ const pointLabel = (s: Spot) => (s.type === "molly" ? `${displayLabel(s)} (Molly
 const TYPE_NAME = { smoke: "Smoke", molly: "Molly" } as const;
 
 /** Lineups mit exakt gleicher Landestelle teilen sich einen Punkt. */
-function groupByLanding(spots: Spot[]): Spot[][] {
+export function groupByLanding(spots: Spot[]): Spot[][] {
   const groups = new Map<string, Spot[]>();
   for (const s of spots) {
     const key = `${s.x},${s.y}`;
@@ -44,7 +44,7 @@ export default function MapScreen({ side, map, spots, onPick, onBack, onNew }: P
               aria-label={label}
               onClick={() => (g.length === 1 ? onPick(g[0].id) : setChoice(g))}
             >
-              <span className="dot" />
+              <span className={g.length > 1 ? "dot count" : "dot"}>{g.length > 1 ? g.length : null}</span>
               <span className="tag" aria-hidden="true">{[...new Set(g.map(displayLabel))].join(" / ")}</span>
             </button>
           );
@@ -57,12 +57,25 @@ export default function MapScreen({ side, map, spots, onPick, onBack, onNew }: P
       <button type="button" className="new-spot" aria-label="Neuer Spot" onClick={onNew}>+</button>
       {choice && (
         <div className="chooser" role="dialog" aria-label="Lineup wählen" onClick={() => setChoice(null)}>
-          <div className="chooser-box">
-            {choice.map((s) => (
-              <button type="button" key={s.id} onClick={() => onPick(s.id)}>
-                {s.name} <small>{TYPE_NAME[s.type]}</small>
-              </button>
-            ))}
+          <div className="chooser-box" onClick={(e) => e.stopPropagation()}>
+            <h2>
+              {[...new Set(choice.map(displayLabel))].join(" / ")}
+              <small>{choice.length} Varianten</small>
+            </h2>
+            <div className={`chooser-tiles ${choice.length === 3 ? "cols-3" : "cols-2"}`}>
+              {choice.map((s) => {
+                const image = s.stand ?? s.aim;
+                return (
+                  <button type="button" key={s.id} aria-label={`${s.name} ${TYPE_NAME[s.type]}`} onClick={() => onPick(s.id)}>
+                    {image && <img src={image} alt="" />}
+                    <strong>{s.name}</strong>
+                    <small>{TYPE_NAME[s.type]}</small>
+                    {s.text && <span>{s.text}</span>}
+                  </button>
+                );
+              })}
+            </div>
+            <button type="button" className="chooser-cancel" onClick={() => setChoice(null)}>Abbrechen</button>
           </div>
         </div>
       )}
