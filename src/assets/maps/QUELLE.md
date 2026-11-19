@@ -5,3 +5,5 @@
 - Die Landestellen wurden mithilfe der Callout-Positionen von https://csdb.gg/maps/mirage/ (gleiches 1024er-Radar) gesetzt und sind Schätzungen.
 
 - `scripts/seed/images/*.jpg`: Standbilder aus den YouTube-Videos, die bei jedem Lineup verlinkt sind (YouTube-IDs Q4Dwg9Z0wZ0, SGeV9W39X68, xPCYPKFG44E), abgerufen am 2026-11-16. Für die Migration in Supabase aufbewahrt. Rechte bei den jeweiligen Erstellern; auf Wunsch werden Bilder sofort entfernt.
+- `inferno.png`: `de_inferno_radar_psd.png` aus https://github.com/MurkyYT/cs2-map-icons (`images/radars/`), abgerufen am 2026-11-19. Landestellen mithilfe der Callouts von https://csdb.gg/maps/inferno/ geschätzt.
+- `scripts/seed/images/inf-*.jpg`: Standbilder aus „CS2 Inferno - Meta Nades To Dominate“ (YouTube-ID -Dq-pbkTewU), abgerufen am 2026-11-19. Rechte beim Ersteller; auf Wunsch werden Bilder sofort entfernt.
