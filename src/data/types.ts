@@ -1,6 +1,6 @@
 export type Side = "t" | "ct";
 export type NadeType = "smoke" | "molly";
-export type MapInfo = { id: string; name: string; radar?: string; active: boolean };
+export type MapInfo = { id: string; name: string; radar?: string; active: boolean; zoom?: number };
 export type Spot = {
   id: string;
   map: string;

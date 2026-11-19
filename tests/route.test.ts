@@ -15,7 +15,7 @@ describe("parseRoute/toHash", () => {
     expect(parse(hash)).toEqual({ screen: "maps" });
   });
 
-  it.each(["#/inferno", "#/xyz"])("%s (inaktiv/unbekannt) führt zum Map-Pool", (hash) => {
+  it.each(["#/dust2", "#/xyz"])("%s (inaktiv/unbekannt) führt zum Map-Pool", (hash) => {
     expect(parse(hash)).toEqual({ screen: "maps" });
   });
 

@@ -27,7 +27,7 @@ describe("validate", () => {
     ["unbekannte Map", { map: "gibtsnicht" }],
     ["ungültige Seite", { side: "x" }],
     ["ungültiger Typ", { type: "flash" }],
-    ["inaktive Map", { map: "inferno" }],
+    ["inaktive Map", { map: "dust2" }],
   ])("meldet %s", (_name, patch) => {
     expect(errorsFor(patch)).toHaveLength(1);
   });
@@ -50,5 +50,18 @@ describe("Mirage-Bestand", () => {
   ])("%s %s hat die Zeiten aus der Spec", (side, name, videoId, start, end) => {
     const spot = SPOTS.find((s) => s.side === side && s.name === name);
     expect(spot).toMatchObject({ videoId, start, end });
+  });
+});
+
+describe("Inferno-Seed", () => {
+  it("besteht die Prüfung der App und des Servers", async () => {
+    const { default: inferno } = await import("../scripts/seed/inferno.json");
+    const { validateInput } = await import("../supabase/functions/spots/logic");
+    expect(validate(MAPS, inferno as Spot[])).toEqual([]);
+    const images = { stand: { type: "image/jpeg", size: 1 }, aim: { type: "image/jpeg", size: 1 } };
+    for (const s of inferno as Spot[]) {
+      const input = { ...s, video_id: s.videoId, start_s: s.start, end_s: s.end };
+      expect(validateInput(input, "create", images as never), s.id).toMatchObject({ ok: true });
+    }
   });
 });

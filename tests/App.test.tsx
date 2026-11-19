@@ -20,16 +20,23 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-it("startet mit dem Map-Pool und nur Mirage aktiv ohne Zurück-Pfeil", () => {
+it("startet mit dem Map-Pool, Mirage und Inferno aktiv, ohne Zurück-Pfeil", () => {
   render(<App />);
   expect(screen.getByRole("heading", { name: "Map wählen" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Mirage" })).toBeEnabled();
-  for (const name of ["Inferno", "Dust2"]) {
-    const tile = screen.getByRole("button", { name: new RegExp(name) });
-    expect(tile).toBeDisabled();
-    expect(tile).toHaveTextContent("bald");
-  }
+  expect(screen.getByRole("button", { name: "Inferno" })).toBeEnabled();
+  const dust2 = screen.getByRole("button", { name: /Dust2/ });
+  expect(dust2).toBeDisabled();
+  expect(dust2).toHaveTextContent("bald");
   expect(screen.queryByRole("button", { name: "Zurück" })).not.toBeInTheDocument();
+});
+
+it("zeigt Inferno mit eigenem Radar-Zoom", () => {
+  render(<App />);
+  go("#/inferno/t");
+  const layer = screen.getByTestId("radar").querySelector(".radar-layer") as HTMLElement;
+  expect(layer.style.transform).toBe("scale(1.04)");
+  expect(layer.querySelector("img")).toHaveAttribute("src");
 });
 
 it("zeigt nach Mirage die Seitenwahl mit Zurück-Pfeil", () => {

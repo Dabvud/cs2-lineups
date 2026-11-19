@@ -3,7 +3,7 @@ import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 
 // Node 22. Erst die aktualisierte Function deployen, dann manuell ausführen:
-// node scripts/migrate.mjs
+// node scripts/migrate.mjs [datei.json]   (Standard: spots.json, z. B. inferno.json)
 const seedDirectory = new URL("./seed/", import.meta.url);
 const missingImages = new Map([
   ["ct-topmid-molly", new Set(["stand", "aim"])],
@@ -32,7 +32,7 @@ async function main() {
   const config = await readFile(new URL("../src/config.ts", import.meta.url), "utf8");
   const url = configValue(config, "SUPABASE_URL").replace(/\/$/, "");
   const anonKey = configValue(config, "SUPABASE_ANON_KEY");
-  const spots = JSON.parse(await readFile(new URL("spots.json", seedDirectory), "utf8"));
+  const spots = JSON.parse(await readFile(new URL(process.argv[2] ?? "spots.json", seedDirectory), "utf8"));
   if (!Array.isArray(spots) || spots.some((spot) => !spot || typeof spot.id !== "string" || !/^[a-z0-9-]{3,60}$/.test(spot.id))) {
     throw new Error("Seed enthält ungültige Spots oder IDs.");
   }

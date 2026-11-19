@@ -1,3 +1,4 @@
+import { radarStyle } from "../data/maps";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent } from "react";
 import type { SpotInput } from "../../supabase/functions/spots/logic";
 import TopBar from "../components/TopBar";
@@ -185,7 +186,7 @@ export default function EditScreen({ map, side, spots, spot, pin, onBack, onPinR
               <h2>Landepunkt</h2>
               <p id="editor-radar-help" className="field-hint">Auf der Karte antippen, wo die Granate landet. Mit der Tastatur: Pfeiltasten verschieben, Enter rastet ein.</p>
               <div className="radar editor-radar">
-                <div className="radar-layer" role="button" tabIndex={busy ? -1 : 0} aria-disabled={busy} aria-label="Landepunkt auf der Karte setzen" aria-describedby="editor-radar-help" onClick={(event) => { if (!busy) selectPoint(event); }} onKeyDown={(event) => { if (!busy) movePoint(event); }}>
+                <div className="radar-layer" style={radarStyle(map)} role="button" tabIndex={busy ? -1 : 0} aria-disabled={busy} aria-label="Landepunkt auf der Karte setzen" aria-describedby="editor-radar-help" onClick={(event) => { if (!busy) selectPoint(event); }} onKeyDown={(event) => { if (!busy) movePoint(event); }}>
                   {map.radar && <img src={map.radar} alt="" draggable={false} />}
                   {others.map((s) => <span key={s.id} className={`point editor-reference ${s.type}`} style={{ left: `${s.x}%`, top: `${s.y}%` }} aria-hidden="true"><span className="dot" /></span>)}
                   {point && <span className={`point landing-point ${type ?? "smoke"}`} data-testid="landing-point" style={{ left: `${point.x}%`, top: `${point.y}%` }}><span className="dot" /><span className="tag">Landepunkt</span></span>}

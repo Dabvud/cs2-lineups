@@ -96,6 +96,10 @@ describe("validateInput", () => {
     expect(validateInput({ ...spot, ...video }, "create", images).ok).toBe(false);
   });
 
+  it("akzeptiert Spots auf Inferno", () => {
+    expect(validateInput({ ...spot, map: "inferno" }, "create", images).ok).toBe(true);
+  });
+
   it("lässt die bestehenden Videofelder bei Editor-Updates unverändert", () => {
     const result = validateInput({
       ...spot, id: "t-jungle", video_id: "Q4Dwg9Z0wZ0", start_s: 0, end_s: 81,
@@ -116,7 +120,7 @@ describe("validateInput", () => {
   it.each([
     ["fehlenden Namen", { name: undefined }],
     ["Namen aus Leerzeichen", { name: "   " }],
-    ["inaktive Map", { map: "inferno" }],
+    ["inaktive Map", { map: "dust2" }],
     ["ungültige Seite", { side: "x" }],
     ["ungültigen Typ", { type: "flash" }],
     ["x über 100", { x: 101 }],

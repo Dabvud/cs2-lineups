@@ -1,3 +1,4 @@
+import { radarStyle } from "../data/maps";
 import { useState } from "react";
 import TopBar from "../components/TopBar";
 import type { MapInfo, Side, Spot } from "../data/types";
@@ -30,7 +31,7 @@ export default function MapScreen({ side, map, spots, onPick, onBack, onNew }: P
     <main className={`screen side-${side}`}>
       <TopBar title={`${map.name} · ${side.toUpperCase()}`} onBack={onBack} />
       <div className="radar" data-testid="radar">
-        <div className="radar-layer">
+        <div className="radar-layer" style={radarStyle(map)}>
         {map.radar && <img src={map.radar} alt="" />}
         {groups.map((g) => {
           const label = [...new Set(g.map(pointLabel))].join(" / ");

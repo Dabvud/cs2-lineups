@@ -16,7 +16,7 @@ export type SpotInput = {
 export type Action = "check" | "create" | "update" | "delete";
 
 // Doppelt zu src/data/maps.ts: Bei einer neuen Map beide Listen ändern.
-export const ACTIVE_MAPS = ["mirage"];
+export const ACTIVE_MAPS = ["mirage", "inferno"];
 export const MAX_IMAGE_BYTES = 1_000_000;
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const PIN_WINDOW_MINUTES = 10;
