@@ -163,6 +163,25 @@ it("wechselt direkt zur anderen Variante", async () => {
   expect(await screen.findByTestId("radar")).toBeInTheDocument();
 });
 
+it("nennt beim Wechsel den Typ, wenn Smoke und Molly gleich heißen", () => {
+  render(<App />);
+  go("#/mirage/ct");
+  click("Ramp (Molly) / Ramp");
+  click("Ramp Smoke");
+  expect(screen.getByRole("button", { name: "⇄ Andere Variante: Ramp (Molly)" })).toBeInTheDocument();
+});
+
+it("springt nach dem Wechsel nach oben", () => {
+  const scroll = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  render(<App />);
+  go("#/mirage/t");
+  click("Window");
+  click("Mid Window (aus T-Spawn) Smoke");
+  scroll.mockClear();
+  click("⇄ Andere Variante: Mid Window (von Top Mid)");
+  expect(scroll).toHaveBeenCalledWith(0, 0);
+});
+
 it("zeigt ohne Varianten keinen Wechsel", () => {
   render(<App />);
   go("#/mirage/t");

@@ -1,6 +1,7 @@
 import TopBar from "../components/TopBar";
 import type { Spot } from "../data/types";
 import { watchUrl } from "../embed";
+import { TYPE_NAME } from "./MapScreen";
 
 type Props = { spot: Spot; siblings?: Spot[]; onSwitch?: (id: string) => void; onBack: () => void; onEdit?: () => void };
 
@@ -31,7 +32,9 @@ export default function LineupScreen({ spot, siblings = [], onSwitch, onBack, on
       {spot.text && <p className="lineup-text" data-testid="lineup-text">{spot.text}</p>}
       {spot.videoId && <a className="source" href={watchUrl(spot)} target="_blank" rel="noreferrer">Video ansehen (YouTube)</a>}
       {onSwitch && siblings.map((s) => (
-        <button type="button" key={s.id} className="switch-variant" onClick={() => onSwitch(s.id)}>⇄ Andere Variante: {s.name}</button>
+        <button type="button" key={s.id} className="switch-variant" onClick={() => onSwitch(s.id)}>
+          ⇄ Andere Variante: {s.name}{s.type !== spot.type && ` (${TYPE_NAME[s.type]})`}
+        </button>
       ))}
     </main>
   );

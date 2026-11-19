@@ -10,7 +10,7 @@ export function displayLabel(s: Spot): string {
 }
 
 const pointLabel = (s: Spot) => (s.type === "molly" ? `${displayLabel(s)} (Molly)` : displayLabel(s));
-const TYPE_NAME = { smoke: "Smoke", molly: "Molly" } as const;
+export const TYPE_NAME = { smoke: "Smoke", molly: "Molly" } as const;
 
 /** Lineups mit exakt gleicher Landestelle teilen sich einen Punkt. */
 export function groupByLanding(spots: Spot[]): Spot[][] {
