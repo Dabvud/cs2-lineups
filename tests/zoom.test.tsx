@@ -64,3 +64,33 @@ it("bricht ab, wenn am iPad vor Ablauf gewischt wird", () => {
   act(() => { vi.advanceTimersByTime(300); });
   expect(img).not.toHaveClass("zoomed");
 });
+
+it("meldet das Scroll-Blockieren schon beim Anzeigen am Rahmen an", () => {
+  const add = vi.spyOn(HTMLDivElement.prototype, "addEventListener");
+  setup();
+  expect(add).toHaveBeenCalledWith("touchmove", expect.any(Function), { passive: false });
+});
+
+it("zoomt nicht, wenn Safari das Halten fürs Scrollen abbricht", () => {
+  const img = setup();
+  fireEvent.pointerDown(img, { clientX: 50, clientY: 25 });
+  fireEvent.pointerCancel(window);
+  act(() => { vi.advanceTimersByTime(300); });
+  expect(img).not.toHaveClass("zoomed");
+});
+
+it("ein zweiter Finger startet das Halten nicht neu", () => {
+  const img = setup();
+  hold(img);
+  fireEvent.pointerDown(img, { clientX: 150, clientY: 75, isPrimary: false });
+  act(() => { vi.advanceTimersByTime(250); });
+  expect(img.style.transformOrigin).toBe("25% 25%");
+});
+
+it("lässt das Bild selbst nicht berühren, damit kein Speichern-Menü kommt", () => {
+  const img = setup();
+  const frame = img.parentElement!;
+  expect(fireEvent.contextMenu(frame)).toBe(false);
+  hold(frame);
+  expect(img).toHaveClass("zoomed");
+});

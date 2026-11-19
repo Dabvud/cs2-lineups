@@ -111,8 +111,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .shots figure { min-width: 0; margin: 0; }
 .shots img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; }
-.zoom-frame { overflow: hidden; border-radius: 12px; }
-.shots .shot { border-radius: 0; transition: transform 0.15s ease-out; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+/* isolation: Safari schneidet sonst die runden Ecken beim Zoomen nicht ab */
+.zoom-frame { overflow: hidden; border-radius: 12px; isolation: isolate; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.shots .shot { border-radius: 0; pointer-events: none; transition: transform 0.15s ease-out; }
 .shots .shot.zoomed { transform: scale(2.5); transition: none; }
 @media (prefers-reduced-motion: reduce) { .shots .shot { transition: none; } }
 .shots figcaption { margin-top: 8px; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; }
